@@ -1,16 +1,21 @@
-CFLAGS := -Wall -Wextra -pedantic -g
+CPP := g++
+CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -g
 
 TARGET := chess
-OBJS := chess.o chess_board.o
+OBJS := chess.o chess_board.o lookup_table.o
 
 $(TARGET): $(OBJS)
-	g++ -o $@ $^
+	$(CPP) $(CPPFLAGS) -o $@ $^
 
-chess.o: chess.cpp chess_board.cpp
-	g++ $(CFLAGS) -c chess.cpp chess_board.cpp
+chess.o: chess.cpp chess_board.h lookup_table.h
+	$(CPP) $(CPPFLAGS) -c chess.cpp
 
-chess_board.o: chess_board.cpp
-	g++ $(CFLAGS) -c chess_board.cpp
+chess_board.o: chess_board.cpp chess_board.h lookup_table.h
+	$(CPP) $(CPPFLAGS) -c chess_board.cpp
+
+lookup_table.o: lookup_table.cpp lookup_table.h
+	$(CPP) $(CPPFLAGS) -c lookup_table.cpp
 
 clean:
-	rm $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
+

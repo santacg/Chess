@@ -1,4 +1,5 @@
 #include "chess_board.h"
+#include "lookup_table.h"
 #include <bitset>
 
 #define WHITE_PAWNS_POS 0x000000000000FF00
@@ -35,6 +36,8 @@ int main() {
                  white_queens, black_queens, white_king, black_king);
 
   chess_board.printBoard();
+
+  LookupTable *lookup_table = lookup_table_init(); 
 
   return 0;
 }
