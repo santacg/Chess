@@ -1,6 +1,8 @@
 #include "chess.h"
 #include <cstdlib>
 
+using namespace std;
+
 int main() {
   ChessBoard chessBoard = ChessBoard();
 
