@@ -1,7 +1,7 @@
 #include "chess_board.h"
-#include "lookup_table.h"
 #include <bitset>
 
+/* Standard initial chess position */
 #define WHITE_PAWNS_POS 0x000000000000FF00
 #define WHITE_ROOKS_POS 0x0000000000000081
 #define WHITE_KNIGHTS_POS 0x0000000000000042
@@ -37,7 +37,10 @@ int main() {
 
   chess_board.printBoard();
 
-  LookupTable *lookup_table = lookup_table_init(); 
+  chess_board.generateKingMoves(WHITE);
+  chess_board.generateKingMoves(BLACK);
+  chess_board.generateKnightMoves(WHITE, 1);
+  chess_board.generateKnightMoves(BLACK, 62);
 
   return 0;
 }

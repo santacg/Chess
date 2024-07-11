@@ -3,7 +3,6 @@
 #include <bitset>
 #include <cmath>
 #include <cstdlib>
-#include <iostream>
 
 LookupTable *lookup_table_init() {
   LookupTable *lookup_table = NULL;
@@ -14,17 +13,30 @@ LookupTable *lookup_table_init() {
 
   int i;
   bitset<64> set = 0xFFFFFFFFFFFFFF00;
-  for (i = 0; i <= RANKS; i++) {
+  for (i = 0; i < RANKS; i++) {
     lookup_table->clear_rank[i] = set;
     lookup_table->mask_rank[i] = set.flip();
     set.flip();
     set = rotl(set.to_ullong(), 8);
   }
 
-  int j;
+  set.reset();
   for (i = 0; i < FILES; i++) {
-    cout << lookup_table->clear_rank[i] << endl;
-    cout << lookup_table->mask_rank[i] << endl;
+    set.set(i * 8, true);
+  }
+
+  for (i = 0; i < FILES; i++) {
+    lookup_table->mask_file[i] = set;
+    lookup_table->clear_file[i] = set.flip();
+    set.flip();
+    set <<= 1;
+  }
+
+  set.reset();
+  set.set(0, true);
+  for (i = 0; i < SQUARES; i++) {
+    lookup_table->piece_lookup[i] = set;
+    set <<= 1;
   }
 
   return lookup_table;

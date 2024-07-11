@@ -3,8 +3,9 @@
 
 #include <bitset>
 
-#define RANKS 7 
-#define FILES 7
+#define RANKS 8
+#define FILES 8
+#define SQUARES 64
 
 using namespace std;
 
@@ -13,9 +14,9 @@ typedef struct {
   bitset<64> clear_file[FILES];
   bitset<64> mask_rank[RANKS];
   bitset<64> mask_file[FILES];
+  bitset<64> piece_lookup[SQUARES];
 } LookupTable;
 
-
-LookupTable *lookup_table_init(); 
+LookupTable *lookup_table_init();
 
 #endif
