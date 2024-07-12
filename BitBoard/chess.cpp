@@ -1,4 +1,4 @@
-#include "chess_board.h"
+#include "bitboard.h"
 #include <bitset>
 
 /* Standard initial chess position */
@@ -30,17 +30,19 @@ int main() {
   bitset<64> white_king(WHITE_KING_POS);
   bitset<64> black_king(BLACK_KING_POS);
 
-  ChessBoard chess_board =
-      ChessBoard(white_pawns, black_pawns, white_rooks, black_rooks,
-                 white_knights, black_knights, white_bishops, black_bishops,
-                 white_queens, black_queens, white_king, black_king);
+  Bitboard bit_board =
+      Bitboard(white_pawns, black_pawns, white_rooks, black_rooks,
+               white_knights, black_knights, white_bishops, black_bishops,
+               white_queens, black_queens, white_king, black_king);
 
-  chess_board.printBoard();
+  bit_board.printBoard();
 
-  chess_board.generateKingMoves(WHITE);
-  chess_board.generateKingMoves(BLACK);
-  chess_board.generateKnightMoves(WHITE, 1);
-  chess_board.generateKnightMoves(BLACK, 62);
+  bit_board.generateKingMoves(WHITE);
+  bit_board.generateKingMoves(BLACK);
+  bit_board.generateKnightMoves(WHITE, 1);
+  bit_board.generateKnightMoves(BLACK, 63);
+  bit_board.generatePawnMoves(WHITE, 8);
+  bit_board.generatePawnMoves(BLACK, 48);
 
   return 0;
 }
