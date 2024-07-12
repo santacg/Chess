@@ -123,6 +123,12 @@ public:
 
   bitset<64> generateBishopMoves(int pos);
 
+  bitset<64> generateFileMoves(int pos);
+
+  bitset<64> generateRookMoves(int pos);
+
+  bitset<64> generateQueenMoves(int pos);
+
   void printBoard();
 };
 

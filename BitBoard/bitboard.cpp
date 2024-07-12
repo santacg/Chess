@@ -159,11 +159,12 @@ bitset<64> Bitboard::generateAntiDiagonalMoves(int pos) {
 
   int rank_index = pos / 8;
   int file_index = pos % 8;
-  int diagonal_index = (rank_index + file_index) ^ 7;
+  int anti_diagonal_index = (rank_index + file_index) ^ 7;
 
   // Getting the pieces assocciated to the diagonal of the sliding piece
   bitset<64> occupancy = allPieces;
-  bitset<64> anti_diagonal = lookupTable->mask_antidiagonal[diagonal_index];
+  bitset<64> anti_diagonal =
+      lookupTable->mask_antidiagonal[anti_diagonal_index];
 
   forward = occupancy & anti_diagonal;
   reverse = (bitset<64>)byteswap(forward.to_ulong());
@@ -184,6 +185,41 @@ bitset<64> Bitboard::generateAntiDiagonalMoves(int pos) {
 
 bitset<64> Bitboard::generateBishopMoves(int pos) {
   return generateDiagonalMoves(pos) | generateAntiDiagonalMoves(pos);
+}
+
+bitset<64> Bitboard::generateFileMoves(int pos) {
+  bitset<64> forward, reverse;
+
+  int file_index = pos % 8;
+
+  // Getting the pieces assocciated to the diagonal of the sliding piece
+  bitset<64> occupancy = allPieces;
+  bitset<64> file = lookupTable->mask_file[file_index];
+
+  forward = occupancy & file;
+  reverse = (bitset<64>)byteswap(forward.to_ulong());
+
+  // Getting everything but the sliding piece given the diagonal pieces
+  forward = (bitset<64>)(forward.to_ulong() -
+                         (lookupTable->piece_lookup[pos] << 1).to_ulong());
+  reverse =
+      (bitset<64>)(reverse.to_ulong() -
+                   (byteswap(
+                       (lookupTable->piece_lookup[pos] << 1).to_ulong())));
+
+  forward ^= (bitset<64>)byteswap(reverse.to_ulong());
+  forward &= file;
+
+  return forward;
+}
+
+bitset<64> Bitboard::generateRookMoves(int pos) {
+  return generateFileMoves(pos);
+}
+
+bitset<64> Bitboard::generateQueenMoves(int pos) {
+  return generateFileMoves(pos) | generateDiagonalMoves(pos) |
+         generateAntiDiagonalMoves(pos);
 }
 
 void Bitboard::printBoard() { print_bitset(allPieces); }
