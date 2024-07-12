@@ -43,6 +43,5 @@ int main() {
   bit_board.generateKnightMoves(BLACK, 63);
   bit_board.generatePawnMoves(WHITE, 8);
   bit_board.generatePawnMoves(BLACK, 48);
-
-  return 0;
+  bit_board.generateBishopMoves(2);
 }

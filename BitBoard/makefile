@@ -1,5 +1,5 @@
 CPP := g++
-CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -g
+CPPFLAGS := -std=c++23 -Wall -Wextra -pedantic -g
 
 TARGET := chess
 OBJS := chess.o bitboard.o lookup_table.o utils.o

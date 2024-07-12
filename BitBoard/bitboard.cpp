@@ -1,6 +1,7 @@
 #include "bitboard.h"
 #include "lookup_table.h"
 #include "utils.h"
+#include <bit>
 #include <bitset>
 
 Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
@@ -34,8 +35,7 @@ Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
 }
 
 bitset<64> Bitboard::generateKingMoves(Color color) {
-  bitset<64> king;
-  bitset<64> pieces;
+  bitset<64> king, pieces;
 
   color == WHITE ? (king = whiteKing, pieces = allWhitePieces)
                  : (king = blackKing, pieces = allBlackPieces);
@@ -63,8 +63,7 @@ bitset<64> Bitboard::generateKingMoves(Color color) {
 }
 
 bitset<64> Bitboard::generateKnightMoves(Color color, int pos) {
-  bitset<64> knights;
-  bitset<64> pieces;
+  bitset<64> knights, pieces;
 
   color == WHITE ? (knights = whiteKnights, pieces = allWhitePieces)
                  : (knights = blackKnights, pieces = allBlackPieces);
@@ -95,10 +94,9 @@ bitset<64> Bitboard::generateKnightMoves(Color color, int pos) {
 }
 
 bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
-  bitset<64> pawn;
-
+  bitset<64> pawn, pieces;
   int rank;
-  bitset<64> pieces;
+
   color == WHITE ? (pawn = whitePawns, rank = 2, pieces = allBlackPieces)
                  : (pawn = blackPawns, rank = 5, pieces = allWhitePieces);
 
@@ -107,9 +105,7 @@ bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
   bitset<64> a_file_clipping = pawn & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = pawn & lookupTable->clear_file[7];
 
-  bitset<64> pawn_one_step;
-  bitset<64> pawn_two_steps;
-
+  bitset<64> pawn_one_step, pawn_two_steps;
   /* dumb7fill for two steps generation wiht an unrolled loop*/
   if (color == WHITE) {
     pawn_one_step = (pawn << 8) & ~allPieces;
@@ -128,6 +124,66 @@ bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
   bitset<64> valid_moves = pawn_one_step | pawn_two_steps | valid_attacks;
 
   return valid_moves;
+}
+
+bitset<64> Bitboard::generateDiagonalMoves(int pos) {
+  bitset<64> forward, reverse;
+
+  int rank_index = pos / 8;
+  int file_index = pos % 8;
+  int diagonal_index = (rank_index - file_index) & 15;
+
+  // Getting the pieces assocciated to the diagonal of the sliding piece
+  bitset<64> occupancy = allPieces;
+  bitset<64> diagonal = lookupTable->mask_diagonal[diagonal_index];
+
+  forward = occupancy & diagonal;
+  reverse = (bitset<64>)byteswap(forward.to_ulong());
+
+  // Getting everything but the sliding piece given the diagonal pieces
+  forward = (bitset<64>)(forward.to_ulong() -
+                         (lookupTable->piece_lookup[pos] << 1).to_ulong());
+  reverse =
+      (bitset<64>)(reverse.to_ulong() -
+                   (byteswap(
+                       (lookupTable->piece_lookup[pos] << 1).to_ulong())));
+
+  forward ^= (bitset<64>)byteswap(reverse.to_ulong());
+  forward &= diagonal;
+
+  return forward;
+}
+
+bitset<64> Bitboard::generateAntiDiagonalMoves(int pos) {
+  bitset<64> forward, reverse;
+
+  int rank_index = pos / 8;
+  int file_index = pos % 8;
+  int diagonal_index = (rank_index + file_index) ^ 7;
+
+  // Getting the pieces assocciated to the diagonal of the sliding piece
+  bitset<64> occupancy = allPieces;
+  bitset<64> anti_diagonal = lookupTable->mask_antidiagonal[diagonal_index];
+
+  forward = occupancy & anti_diagonal;
+  reverse = (bitset<64>)byteswap(forward.to_ulong());
+
+  // Getting everything but the sliding piece given the diagonal pieces
+  forward = (bitset<64>)(forward.to_ulong() -
+                         (lookupTable->piece_lookup[pos] << 1).to_ulong());
+  reverse =
+      (bitset<64>)(reverse.to_ulong() -
+                   (byteswap(
+                       (lookupTable->piece_lookup[pos] << 1).to_ulong())));
+
+  forward ^= (bitset<64>)byteswap(reverse.to_ulong());
+  forward &= anti_diagonal;
+
+  return forward;
+}
+
+bitset<64> Bitboard::generateBishopMoves(int pos) {
+  return generateDiagonalMoves(pos) | generateAntiDiagonalMoves(pos);
 }
 
 void Bitboard::printBoard() { print_bitset(allPieces); }

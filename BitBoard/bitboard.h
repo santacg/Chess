@@ -117,6 +117,11 @@ public:
   bitset<64> generatePawnMoves(Color color, int pos);
 
   /* Sliding pieces move generators */
+  bitset<64> generateDiagonalMoves(int pos);
+
+  bitset<64> generateAntiDiagonalMoves(int pos);
+
+  bitset<64> generateBishopMoves(int pos);
 
   void printBoard();
 };
