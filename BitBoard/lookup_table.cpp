@@ -1,5 +1,4 @@
 #include "lookup_table.h"
-#include "utils.h"
 #include <bit>
 #include <bitset>
 #include <cmath>

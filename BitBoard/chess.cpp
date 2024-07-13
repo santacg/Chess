@@ -1,9 +1,8 @@
 #include "bitboard.h"
-#include "utils.h"
 #include <bitset>
 
 /* Standard initial chess position */
-#define WHITE_PAWNS_POS 0x0000000000000000
+#define WHITE_PAWNS_POS 0x000000000000FF00
 #define WHITE_ROOKS_POS 0x0000000000000081
 #define WHITE_KNIGHTS_POS 0x0000000000000042
 #define WHITE_BISHOPS_POS 0x0000000000000024
@@ -37,14 +36,4 @@ int main() {
                white_queens, black_queens, white_king, black_king);
 
   bit_board.printBoard();
-
-  bit_board.generateKingMoves(WHITE);
-  bit_board.generateKingMoves(BLACK);
-  bit_board.generateKnightMoves(WHITE, 1);
-  bit_board.generateKnightMoves(BLACK, 63);
-  bit_board.generatePawnMoves(WHITE, 8);
-  bit_board.generatePawnMoves(BLACK, 48);
-  bit_board.generateBishopMoves(2);
-  print_bitset(bit_board.generateRookMoves(0));
-  print_bitset(bit_board.generateQueenMoves(3));
 }

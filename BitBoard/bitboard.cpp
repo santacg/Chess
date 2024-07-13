@@ -1,8 +1,8 @@
 #include "bitboard.h"
 #include "lookup_table.h"
-#include "utils.h"
 #include <bit>
 #include <bitset>
+#include <iostream>
 
 Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
                    bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
@@ -32,6 +32,19 @@ Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
   allPieces = (allWhitePieces | allBlackPieces);
 
   emptySquares = ~allPieces;
+
+  piecesBB[0] = whitePawns;
+  piecesBB[1] = blackPawns;
+  piecesBB[2] = whiteRooks;
+  piecesBB[3] = blackRooks;
+  piecesBB[4] = whiteKnights;
+  piecesBB[5] = blackKnights;
+  piecesBB[6] = whiteBishops;
+  piecesBB[7] = blackBishops;
+  piecesBB[8] = whiteQueens;
+  piecesBB[9] = blackQueens;
+  piecesBB[10] = whiteKing;
+  piecesBB[11] = blackKing;
 }
 
 bitset<64> Bitboard::generateKingMoves(Color color) {
@@ -222,4 +235,67 @@ bitset<64> Bitboard::generateQueenMoves(int pos) {
          generateAntiDiagonalMoves(pos);
 }
 
-void Bitboard::printBoard() { print_bitset(allPieces); }
+void Bitboard::printBitboard(bitset<64> bitboard) {
+  int i, j;
+  char c = 'a';
+
+  cout << endl;
+
+  for (i = RANKS; i > 0; i--) {
+    cout << i << " ";
+
+    for (j = FILES; j > 0; j--) {
+      if (bitboard[(i * 8) - j] == true) {
+        cout << "1";
+      } else {
+        cout << "0";
+      }
+
+      cout << " ";
+    }
+
+    cout << endl;
+  }
+
+  cout << "  ";
+  for (i = 0; i < 8; i++, c++) {
+    cout << c << " ";
+  }
+
+  cout << endl;
+}
+
+void Bitboard::printBoard() {
+  int i, j;
+  char c = 'a';
+
+  cout << endl;
+
+  for (i = RANKS; i > 0; i--) {
+    cout << i << " ";
+
+    for (j = FILES; j > 0; j--) {
+      int square = 8 * (i - 1) + (j - 1);
+      int piece = -1;
+
+      for (int z = 0; z < 12; z++) {
+        if ((piecesBB[z] & lookupTable->piece_lookup[square]).any() == true) {
+          piece = z;
+          break;
+        }
+      }
+
+      (piece == -1) ? cout << '.' : cout << asciiPieces[piece];
+      cout << " ";
+    }
+
+    cout << endl;
+  }
+
+  cout << "  ";
+  for (i = 0; i < 8; i++, c++) {
+    cout << c << " ";
+  }
+
+  cout << endl << endl;
+}
