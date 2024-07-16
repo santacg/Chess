@@ -49,6 +49,52 @@ Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
   turn = WHITE;
 }
 
+Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
+                   bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
+                   bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK,
+                   Color turn_color) {
+
+  lookupTable = lookup_table_init();
+
+  whitePawns |= wP;
+  blackPawns |= bP;
+  whiteRooks |= wR;
+  blackRooks |= bR;
+  whiteKnights |= wN;
+  blackKnights |= bN;
+  whiteBishops |= wB;
+  blackBishops |= bB;
+  whiteQueens |= wQ;
+  blackQueens |= bQ;
+  whiteKing |= wK;
+  blackKing |= bK;
+
+  allWhitePieces = (whiteKing | whiteQueens | whiteBishops | whiteKnights |
+                    whiteRooks | whitePawns);
+
+  allBlackPieces = (blackKing | blackQueens | blackBishops | blackKnights |
+                    blackRooks | blackPawns);
+
+  allPieces = (allWhitePieces | allBlackPieces);
+
+  emptySquares = ~allPieces;
+
+  piecesBB[0] = whitePawns;
+  piecesBB[1] = blackPawns;
+  piecesBB[2] = whiteRooks;
+  piecesBB[3] = blackRooks;
+  piecesBB[4] = whiteKnights;
+  piecesBB[5] = blackKnights;
+  piecesBB[6] = whiteBishops;
+  piecesBB[7] = blackBishops;
+  piecesBB[8] = whiteQueens;
+  piecesBB[9] = blackQueens;
+  piecesBB[10] = whiteKing;
+  piecesBB[11] = blackKing;
+
+  turn = turn_color;
+}
+
 bitset<64> Bitboard::generateKingMoves(Color color) {
   bitset<64> king, pieces;
 

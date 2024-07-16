@@ -181,9 +181,16 @@ Bitboard parse_fen(string fen_str) {
       }
     }
   }
+
+  int blank_space = fen_str.find(" ");
+  char turn_color = fen_str[blank_space + 1];
+
+  Color turn;
+  (turn_color == 'w') ? turn = WHITE : turn = BLACK;
+
   return Bitboard(white_pawns, black_pawns, white_rooks, black_rooks,
                   white_knights, black_knights, white_bishops, black_bishops,
-                  white_queens, black_queens, white_king, black_king);
+                  white_queens, black_queens, white_king, black_king, turn);
 }
 
 int main() {
@@ -207,6 +214,6 @@ int main() {
 
   bit_board.printBoard();
   Bitboard fen_bit_board =
-      parse_fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R");
+      parse_fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b");
   fen_bit_board.printBoard();
 }

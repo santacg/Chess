@@ -116,6 +116,11 @@ public:
            bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
            bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK);
 
+  Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
+           bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
+           bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK,
+           Color turn_color);
+
   ~Bitboard() { free(lookupTable); };
 
   /* Non sliding pieces move generators */
