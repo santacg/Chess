@@ -1,5 +1,10 @@
 #include "bitboard.h"
+#include "lookup_table.h"
 #include <bitset>
+#include <cctype>
+#include <endian.h>
+#include <iostream>
+#include <string>
 
 /* Standard initial chess position */
 #define WHITE_PAWNS_POS 0x000000000000FF00
@@ -15,6 +20,171 @@
 #define BLACK_BISHOPS_POS 0x2400000000000000
 #define BLACK_QUEENS_POS 0x0800000000000000
 #define BLACK_KING_POS 0x1000000000000000
+
+Bitboard parse_fen(string fen_str) {
+  int i, j, str_counter;
+
+  bitset<64> white_pawns;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'P') {
+        white_pawns.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+
+  bitset<64> black_pawns;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'p') {
+        black_pawns.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> white_rooks;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'R') {
+        white_rooks.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> black_rooks;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'r') {
+        black_rooks.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> white_knights;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'N') {
+        white_knights.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> black_knights;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'n') {
+        black_knights.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> white_bishops;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'B') {
+        white_bishops.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> black_bishops;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'b') {
+        black_bishops.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> white_queens;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'Q') {
+        white_queens.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> black_queens;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'q') {
+        black_queens.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> white_king;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'K') {
+        white_king.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  bitset<64> black_king;
+  for (i = RANKS - 1, str_counter = 0; i >= 0; i--) {
+    for (j = 0; j <= FILES; j++, str_counter++) {
+      if (fen_str[str_counter] == 'k') {
+        black_king.set((i * 8) + j, true);
+      } else if (fen_str[str_counter] == '/') {
+        str_counter++;
+        break;
+      } else if (isdigit(fen_str[str_counter]) == true) {
+        j += (fen_str[str_counter] - '0') - 1;
+      }
+    }
+  }
+  return Bitboard(white_pawns, black_pawns, white_rooks, black_rooks,
+                  white_knights, black_knights, white_bishops, black_bishops,
+                  white_queens, black_queens, white_king, black_king);
+}
 
 int main() {
   bitset<64> white_pawns(WHITE_PAWNS_POS);
@@ -36,4 +206,7 @@ int main() {
                white_queens, black_queens, white_king, black_king);
 
   bit_board.printBoard();
+  Bitboard fen_bit_board =
+      parse_fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R");
+  fen_bit_board.printBoard();
 }

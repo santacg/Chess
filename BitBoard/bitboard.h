@@ -105,9 +105,13 @@ private:
   /* Bitboard serialization */
   bitset<64> piecesBB[12];
 
-public:
-  char asciiPieces[13] = "PpRrNnBbQqKk";
+  /* Chess game rules */
+  Color turn;
 
+  const char *asciiPieces[12] = {"♙", "♟", "♖", "♜", "♘", "♞",
+                                 "♗", "♝", "♛", "♕", "♔", "♚"};
+
+public:
   Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
            bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
            bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK);
@@ -133,8 +137,6 @@ public:
   bitset<64> generateRookMoves(int pos);
 
   bitset<64> generateQueenMoves(int pos);
-
-  bitset<64> generateDefendedPieces(Color color);
 
   void printBitboard(bitset<64> bitboard);
 

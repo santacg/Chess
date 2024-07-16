@@ -5,6 +5,12 @@
 #include <cstdio>
 #include <cstdlib>
 
+void init_diagonals(LookupTable *lut);
+
+void init_files(LookupTable *lut);
+
+void init_squares(LookupTable *lut);
+
 LookupTable *lookup_table_init() {
   LookupTable *lookup_table = NULL;
 
@@ -12,11 +18,27 @@ LookupTable *lookup_table_init() {
   if (lookup_table == NULL)
     return NULL;
 
+  init_squares(lookup_table);
+
+  init_files(lookup_table);
+
+  init_diagonals(lookup_table);
+
+  return lookup_table;
+}
+
+void init_squares(LookupTable *lut) {
+  for (int i = 0; i < SQUARES; i++) {
+    lut->piece_lookup[i].set(i, true);
+  }
+}
+
+void init_files(LookupTable *lut) {
   int i;
   bitset<64> set = 0xFFFFFFFFFFFFFF00;
   for (i = 0; i < RANKS; i++) {
-    lookup_table->clear_rank[i] = set;
-    lookup_table->mask_rank[i] = set.flip();
+    lut->clear_rank[i] = set;
+    lut->mask_rank[i] = set.flip();
     set.flip();
     set = rotl(set.to_ullong(), 8);
   }
@@ -27,41 +49,38 @@ LookupTable *lookup_table_init() {
   }
 
   for (i = 0; i < FILES; i++) {
-    lookup_table->mask_file[i] = set;
-    lookup_table->clear_file[i] = set.flip();
+    lut->mask_file[i] = set;
+    lut->clear_file[i] = set.flip();
     set.flip();
     set <<= 1;
   }
+}
 
-  for (i = 0; i < SQUARES; i++) {
-    lookup_table->piece_lookup[i].set(i, true);
-  }
+void init_diagonals(LookupTable *lut) {
 
-  int j, z;
+  int i, j, z;
   for (i = 0; i < DIAGONALS / 2; i++) {
     for (j = i, z = 0; j < RANKS; j++, z++) {
-      lookup_table->mask_diagonal[i].set((j * 8) + z, true);
+      lut->mask_diagonal[i].set((j * 8) + z, true);
     }
   }
 
   int c;
   for (c = 15; c > 8; i--, c--) {
     for (j = i - 1, z = 0; j > 0; j--, z++) {
-      lookup_table->mask_diagonal[c].set(((j * 8) - 1) - z, true);
+      lut->mask_diagonal[c].set(((j * 8) - 1) - z, true);
     }
   }
 
   for (c = 0, i = RANKS - 1; i >= 0; i--, c++) {
     for (j = i, z = 0; j >= 0; j--, z++) {
-      lookup_table->mask_antidiagonal[c].set((j * 8) + z, true);
+      lut->mask_antidiagonal[c].set((j * 8) + z, true);
     }
   }
 
   for (i = 2, c = 15; c > 8; i++, c--) {
     for (j = i, z = 0; j <= RANKS; j++, z++) {
-      lookup_table->mask_antidiagonal[c].set(((j * 8) - 1) - z, true);
+      lut->mask_antidiagonal[c].set(((j * 8) - 1) - z, true);
     }
   }
-
-  return lookup_table;
 }

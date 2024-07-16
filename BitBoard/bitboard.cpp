@@ -45,6 +45,8 @@ Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
   piecesBB[9] = blackQueens;
   piecesBB[10] = whiteKing;
   piecesBB[11] = blackKing;
+
+  turn = WHITE;
 }
 
 bitset<64> Bitboard::generateKingMoves(Color color) {
@@ -271,11 +273,11 @@ void Bitboard::printBoard() {
 
   cout << endl;
 
-  for (i = RANKS; i > 0; i--) {
+  for (i = RANKS - 1; i >= 0; i--) {
     cout << i << " ";
 
-    for (j = FILES; j > 0; j--) {
-      int square = 8 * (i - 1) + (j - 1);
+    for (j = 0; j < FILES; j++) {
+      int square = (8 * i) + j;
       int piece = -1;
 
       for (int z = 0; z < 12; z++) {
@@ -296,6 +298,10 @@ void Bitboard::printBoard() {
   for (i = 0; i < 8; i++, c++) {
     cout << c << " ";
   }
+
+  cout << endl << endl;
+  cout << "Side to move: ";
+  (turn == WHITE) ? cout << "white" : cout << "black";
 
   cout << endl << endl;
 }
