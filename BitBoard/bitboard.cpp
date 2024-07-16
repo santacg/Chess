@@ -33,18 +33,18 @@ Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
 
   emptySquares = ~allPieces;
 
-  piecesBB[0] = whitePawns;
-  piecesBB[1] = blackPawns;
-  piecesBB[2] = whiteRooks;
-  piecesBB[3] = blackRooks;
-  piecesBB[4] = whiteKnights;
-  piecesBB[5] = blackKnights;
-  piecesBB[6] = whiteBishops;
-  piecesBB[7] = blackBishops;
-  piecesBB[8] = whiteQueens;
-  piecesBB[9] = blackQueens;
-  piecesBB[10] = whiteKing;
-  piecesBB[11] = blackKing;
+  piecesBB[WHITE_PAWNS_BB] = whitePawns;
+  piecesBB[BLACK_PAWNS_BB] = blackPawns;
+  piecesBB[WHITE_ROOKS_BB] = whiteRooks;
+  piecesBB[BLACK_ROOKS_BB] = blackRooks;
+  piecesBB[WHITE_KNIGHTS_BB] = whiteKnights;
+  piecesBB[BLACK_KNIGHTS_BB] = blackKnights;
+  piecesBB[WHITE_BISHOPS_BB] = whiteBishops;
+  piecesBB[BLACK_BISHOPS_BB] = blackBishops;
+  piecesBB[WHITE_QUEENS_BB] = whiteQueens;
+  piecesBB[BLACK_QUEENS_BB] = blackQueens;
+  piecesBB[WHITE_KING_BB] = whiteKing;
+  piecesBB[BLACK_KING_BB] = blackKing;
 
   turn = WHITE;
 }
@@ -79,18 +79,18 @@ Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
 
   emptySquares = ~allPieces;
 
-  piecesBB[0] = whitePawns;
-  piecesBB[1] = blackPawns;
-  piecesBB[2] = whiteRooks;
-  piecesBB[3] = blackRooks;
-  piecesBB[4] = whiteKnights;
-  piecesBB[5] = blackKnights;
-  piecesBB[6] = whiteBishops;
-  piecesBB[7] = blackBishops;
-  piecesBB[8] = whiteQueens;
-  piecesBB[9] = blackQueens;
-  piecesBB[10] = whiteKing;
-  piecesBB[11] = blackKing;
+  piecesBB[WHITE_PAWNS_BB] = whitePawns;
+  piecesBB[BLACK_PAWNS_BB] = blackPawns;
+  piecesBB[WHITE_ROOKS_BB] = whiteRooks;
+  piecesBB[BLACK_ROOKS_BB] = blackRooks;
+  piecesBB[WHITE_KNIGHTS_BB] = whiteKnights;
+  piecesBB[BLACK_KNIGHTS_BB] = blackKnights;
+  piecesBB[WHITE_BISHOPS_BB] = whiteBishops;
+  piecesBB[BLACK_BISHOPS_BB] = blackBishops;
+  piecesBB[WHITE_QUEENS_BB] = whiteQueens;
+  piecesBB[BLACK_QUEENS_BB] = blackQueens;
+  piecesBB[WHITE_KING_BB] = whiteKing;
+  piecesBB[BLACK_KING_BB] = blackKing;
 
   turn = turn_color;
 }
@@ -154,6 +154,24 @@ bitset<64> Bitboard::generateKnightMoves(Color color, int pos) {
   return valid_moves;
 }
 
+bitset<64> Bitboard::generatePawnAttacks(Color color, int pos) {
+  bitset<64> pawn, pieces;
+
+  color == WHITE ? (pawn = whitePawns, pieces = allBlackPieces)
+                 : (pawn = blackPawns, pieces = allWhitePieces);
+
+  pawn = lookupTable->piece_lookup[pos] & pawn;
+
+  bitset<64> a_file_clipping = pawn & lookupTable->clear_file[0];
+  bitset<64> h_file_clipping = pawn & lookupTable->clear_file[7];
+
+  bitset<64> valid_attacks =
+      (((pawn & a_file_clipping) << 7) | ((pawn & h_file_clipping) << 9)) &
+      pieces;
+
+  return valid_attacks;
+}
+
 bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
   bitset<64> pawn, pieces;
   int rank;
@@ -163,10 +181,8 @@ bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
 
   pawn = lookupTable->piece_lookup[pos] & pawn;
 
-  bitset<64> a_file_clipping = pawn & lookupTable->clear_file[0];
-  bitset<64> h_file_clipping = pawn & lookupTable->clear_file[7];
-
   bitset<64> pawn_one_step, pawn_two_steps;
+
   /* dumb7fill for two steps generation wiht an unrolled loop*/
   if (color == WHITE) {
     pawn_one_step = (pawn << 8) & ~allPieces;
@@ -178,9 +194,7 @@ bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
         ((pawn_one_step & lookupTable->mask_rank[rank]) >> 8) & ~allPieces;
   }
 
-  bitset<64> valid_attacks =
-      (((pawn & a_file_clipping) << 7) | ((pawn & h_file_clipping) << 9)) &
-      pieces;
+  bitset<64> valid_attacks = generatePawnAttacks(color, pos);
 
   bitset<64> valid_moves = pawn_one_step | pawn_two_steps | valid_attacks;
 
@@ -281,6 +295,21 @@ bitset<64> Bitboard::generateRookMoves(int pos) {
 bitset<64> Bitboard::generateQueenMoves(int pos) {
   return generateFileMoves(pos) | generateDiagonalMoves(pos) |
          generateAntiDiagonalMoves(pos);
+}
+
+void Bitboard::nonSlidingAttacks() {
+  int i;
+
+  /* Loop over all squares */
+  for (i = 0; i < SQUARES - 1; i++) {
+    /* Get all pawn attacks for each color and each square */
+    pawnAttacks[WHITE][i] = generatePawnAttacks(WHITE, i);
+    pawnAttacks[BLACK][i] = generatePawnAttacks(BLACK, i);
+
+    /* Get all knight attacks for each color and each square */
+    knightAttacks[WHITE][i] = generateKnightMoves(WHITE, i);
+    knightAttacks[BLACK][i] = generateKnightMoves(BLACK, i);
+  }
 }
 
 void Bitboard::printBitboard(bitset<64> bitboard) {

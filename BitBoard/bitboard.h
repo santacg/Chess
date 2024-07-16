@@ -4,74 +4,20 @@
 #include "lookup_table.h"
 #include <bitset>
 
-using namespace std;
+#define WHITE_PAWNS_BB 0
+#define BLACK_PAWNS_BB 1
+#define WHITE_ROOKS_BB 2
+#define BLACK_ROOKS_BB 3
+#define WHITE_KNIGHTS_BB 4
+#define BLACK_KNIGHTS_BB 5
+#define WHITE_BISHOPS_BB 6
+#define BLACK_BISHOPS_BB 7
+#define WHITE_QUEENS_BB 8
+#define BLACK_QUEENS_BB 9
+#define WHITE_KING_BB 10
+#define BLACK_KING_BB 11
 
-enum enumSquare {
-  a1,
-  b1,
-  c1,
-  d1,
-  e1,
-  f1,
-  g1,
-  h1,
-  a2,
-  b2,
-  c2,
-  d2,
-  e2,
-  f2,
-  g2,
-  h2,
-  a3,
-  b3,
-  c3,
-  d3,
-  e3,
-  f3,
-  g3,
-  h3,
-  a4,
-  b4,
-  c4,
-  d4,
-  e4,
-  f4,
-  g4,
-  h4,
-  a5,
-  b5,
-  c5,
-  d5,
-  e5,
-  f5,
-  g5,
-  h5,
-  a6,
-  b6,
-  c6,
-  d6,
-  e6,
-  f6,
-  g6,
-  h6,
-  a7,
-  b7,
-  c7,
-  d7,
-  e7,
-  f7,
-  g7,
-  h7,
-  a8,
-  b8,
-  c8,
-  d8,
-  e8,
-  f8,
-  g8,
-  h8
-};
+using namespace std;
 
 enum Color { WHITE, BLACK };
 
@@ -96,7 +42,7 @@ private:
   bitset<64> blackQueens;
   bitset<64> blackKing;
 
-  /* Derived positions */
+  /* Derived positions from pieces */
   bitset<64> allWhitePieces;
   bitset<64> allBlackPieces;
   bitset<64> allPieces;
@@ -105,11 +51,30 @@ private:
   /* Bitboard serialization */
   bitset<64> piecesBB[12];
 
+  /* Attacking Bitboards */
+  bitset<64> pawnAttacks[2][SQUARES];
+  bitset<64> knightAttacks[2][SQUARES];
+
   /* Chess game rules */
   Color turn;
 
+  /* Chess unicode ascii pieces */
   const char *asciiPieces[12] = {"♙", "♟", "♖", "♜", "♘", "♞",
                                  "♗", "♝", "♛", "♕", "♔", "♚"};
+
+  /* Private move generator methods */
+  bitset<64> generatePawnAttacks(Color color, int pos);
+
+  bitset<64> generateDiagonalMoves(int pos);
+
+  bitset<64> generateAntiDiagonalMoves(int pos);
+
+  bitset<64> generateFileMoves(int pos);
+
+  /* Attacking bitboards methods */
+  void nonSlidingAttacks();
+
+  void SlidingAttacks();
 
 public:
   Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
@@ -131,18 +96,13 @@ public:
   bitset<64> generatePawnMoves(Color color, int pos);
 
   /* Sliding pieces move generators */
-  bitset<64> generateDiagonalMoves(int pos);
-
-  bitset<64> generateAntiDiagonalMoves(int pos);
-
   bitset<64> generateBishopMoves(int pos);
-
-  bitset<64> generateFileMoves(int pos);
 
   bitset<64> generateRookMoves(int pos);
 
   bitset<64> generateQueenMoves(int pos);
 
+  /* Output methods */
   void printBitboard(bitset<64> bitboard);
 
   void printBoard();
