@@ -19,9 +19,13 @@
 
 using namespace std;
 
-enum Color { WHITE, BLACK };
+enum Color { WHITE, BLACK, NONE };
 
-typedef struct _BitBoard {
+class Bitboard {
+private:
+  /* Lookup tables */
+  LookupTable *lookupTable;
+
   /* White pieces positions */
   bitset<64> whitePawns;
   bitset<64> whiteRooks;
@@ -49,37 +53,77 @@ typedef struct _BitBoard {
 
   /* Attacking Bitboards */
   bitset<64> pawnAttacks[2][SQUARES];
-  bitset<64> knightAttacks[2][SQUARES];
+  bitset<64> knightAttacks[SQUARES];
 
   /* Chess game rules */
   Color turn;
 
-} BitBoard;
+  /* Private move generator methods */
+  /* Hyperbolee Quiessence algorithm */
+  bitset<64> generateDiagonalAttacks(int pos);
 
-BitBoard *init_bitboard();
+  bitset<64> generateAntiDiagonalAttacks(int pos);
 
-BitBoard *init_custom_bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR,
-                               bitset<64> bR, bitset<64> wN, bitset<64> bN,
-                               bitset<64> wB, bitset<64> bB, bitset<64> wQ,
-                               bitset<64> bQ, bitset<64> wK, bitset<64> bK,
-                               Color turn_color);
+  bitset<64> generateFileAttacks(int pos);
 
-bitset<64> generate_king_moves(BitBoard *bb, LookupTable *lut, Color color);
+  /* First rank attacks algorithm */
+  bitset<64> generateRankAttacks(int pos);
 
-bitset<64> generate_knight_moves(BitBoard *bb, LookupTable *lut, Color color,
-                                 int pos);
+  /* Attacking bitboards methods */
+  void nonSlidingAttacks();
 
-bitset<64> generate_pawn_moves(BitBoard *bb, LookupTable *lut, Color color,
-                               int pos);
+  void SlidingAttacks();
 
-bitset<64> generate_bishop_moves(BitBoard *bb, LookupTable *lut, int pos);
+public:
+  /* Initialize a board with chess default starting position */
+  Bitboard();
 
-bitset<64> generate_rook_moves(BitBoard *bb, LookupTable *lut, int pos);
+  /* Initialize a custom position */
+  Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
+           bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
+           bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK,
+           Color turn_color);
 
-bitset<64> generate_queen_moves(BitBoard *bb, LookupTable *lut, int pos);
+  /* Initialize an empty board */
+  Bitboard(Color none);
 
-void print_bitset(bitset<64> bitboard);
+  void setLookupTable(LookupTable *lut);
 
-void print_bitboard(BitBoard *bb, LookupTable *lut);
+  /* Non sliding pieces attack generators */
+  bitset<64> generateKingAttacks(Color color);
+
+  bitset<64> generateKnightAttacks(int pos);
+
+  bitset<64> generatePawnAttacks(Color color, int pos);
+
+  /* Sliding pieces attack generators */
+  bitset<64> generateBishopAttacks(int pos);
+
+  bitset<64> generateRookAttacks(int pos);
+
+  bitset<64> generateQueenAttacks(int pos);
+
+  /* Non sliding pieces move generators */
+  bitset<64> generateKingMoves(Color color);
+
+  bitset<64> generateKnightMoves(Color color, int pos);
+
+  bitset<64> generatePawnMoves(Color color, int pos);
+
+  /* Sliding pieces move generators */
+  bitset<64> generateBishopMoves(int pos);
+
+  bitset<64> generateRookMoves(int pos);
+
+  bitset<64> generateQueenMoves(int pos);
+
+  /* Common chess methods */
+  bitset<64> attacksToSquare(int pos);
+
+  /* Output methods */
+  void printBitboard(bitset<64> bitboard);
+
+  void printBoard();
+};
 
 #endif

@@ -18,9 +18,7 @@ typedef struct {
   bitset<64> mask_diagonal[DIAGONALS];
   bitset<64> mask_antidiagonal[DIAGONALS];
   bitset<64> piece_lookup[SQUARES];
-  bitset<64> mask_pawn_attacks[2][SQUARES];
-  bitset<64> mask_knight_attacks[SQUARES];
-  bitset<64> mask_king_attacks[SQUARES];
+  bitset<64> mask_first_rank_attacks[SQUARES * RANKS];
 } LookupTable;
 
 LookupTable *init_lookup_table();

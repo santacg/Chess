@@ -2,6 +2,7 @@
 #include "lookup_table.h"
 #include <bitset>
 #include <cctype>
+#include <codecvt>
 #include <endian.h>
 #include <iostream>
 #include <string>
@@ -11,7 +12,7 @@
 #define RUY_LOPEZ "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b"
 #define SCANDI "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w"
 
-BitBoard *parse_fen(string fen_str) {
+Bitboard parse_fen(string fen_str) {
   int i, j, str_counter;
 
   bitset<64> white_pawns;
@@ -68,29 +69,19 @@ BitBoard *parse_fen(string fen_str) {
   Color turn;
   (turn_color == 'w') ? turn = WHITE : turn = BLACK;
 
-  return init_custom_bitboard(white_pawns, black_pawns, white_rooks,
-                              black_rooks, white_knights, black_knights,
-                              white_bishops, black_bishops, white_queens,
-                              black_queens, white_king, black_king, turn);
+  return Bitboard(white_pawns, black_pawns, white_rooks, black_rooks,
+                  white_knights, black_knights, white_bishops, black_bishops,
+                  white_queens, black_queens, white_king, black_king, turn);
 }
 
 int main() {
-
   LookupTable *lut = init_lookup_table();
 
-  BitBoard *fen_bit_board = parse_fen(SCANDI);
+  Bitboard fen_bit_board = parse_fen("8/1P5p/R2Q4/3kp1p1/8/3P3P/2P1K1P1/1R6 b");
+  fen_bit_board.setLookupTable(lut);
+  fen_bit_board.printBoard();
+  fen_bit_board.printBitboard(fen_bit_board.generateQueenAttacks(43));
 
-  if (fen_bit_board == NULL)
-    return 1;
-
-  print_bitboard(fen_bit_board, lut);
-
-  BitBoard *bit_board = init_bitboard();
-
-  if (bit_board == NULL)
-    return 1;
-
-  print_bitboard(bit_board, lut);
-
+  free(lut);
   return 0;
 }

@@ -11,6 +11,10 @@ void init_files(LookupTable *lut);
 
 void init_squares(LookupTable *lut);
 
+int generate_rank_attack(int o, int f);
+
+void init_first_rank_attacks(LookupTable *lut);
+
 LookupTable *init_lookup_table() {
   LookupTable *lookup_table = NULL;
 
@@ -18,11 +22,32 @@ LookupTable *init_lookup_table() {
   if (lookup_table == NULL)
     return NULL;
 
+  for (int i = 0; i < RANKS; i++) {
+    lookup_table->clear_rank[i].reset();
+    lookup_table->mask_rank[i].reset();
+  }
+
+  for (int i = 0; i < FILES; i++) {
+    lookup_table->clear_file[i].reset();
+    lookup_table->mask_file[i].reset();
+  }
+
+  for (int i = 0; i < DIAGONALS; i++) {
+    lookup_table->mask_diagonal[i].reset();
+    lookup_table->mask_antidiagonal[i].reset();
+  }
+
+  for (int i = 0; i < SQUARES; i++) {
+    lookup_table->piece_lookup[i].reset();
+  }
+
   init_squares(lookup_table);
 
   init_files(lookup_table);
 
   init_diagonals(lookup_table);
+
+  init_first_rank_attacks(lookup_table);
 
   return lookup_table;
 }
@@ -85,11 +110,30 @@ void init_diagonals(LookupTable *lut) {
   }
 }
 
-void init_non_sliding_attacks(LookupTable *lut) {
+int generate_rank_attack(int o, int f) {
+  int x, y;
+  int b;
+  y = 0;
+  for (x = f - 1; x >= 0; --x) {
+    b = 1 << x;
+    y |= b;
+    if ((o & b) == b)
+      break;
+  }
+  for (x = f + 1; x < 8; ++x) {
+    b = 1 << x;
+    y |= b;
+    if ((o & b) == b)
+      break;
+  }
+  return y;
+}
 
-  bitset<64> board;
-
-  for (int i = 0; i < SQUARES; i++) {
-    lut->mask_pawn_attacks[0][i] = board;
+void init_first_rank_attacks(LookupTable *lut) {
+  for (int i = 0; i < SQUARES; ++i) {
+    for (int j = 0; j < RANKS; ++j) {
+      lut->mask_first_rank_attacks[i * RANKS + j] =
+          generate_rank_attack(i * 2, j);
+    }
   }
 }
