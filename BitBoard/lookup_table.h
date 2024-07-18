@@ -18,8 +18,11 @@ typedef struct {
   bitset<64> mask_diagonal[DIAGONALS];
   bitset<64> mask_antidiagonal[DIAGONALS];
   bitset<64> piece_lookup[SQUARES];
+  bitset<64> mask_pawn_attacks[2][SQUARES];
+  bitset<64> mask_knight_attacks[SQUARES];
+  bitset<64> mask_king_attacks[SQUARES];
 } LookupTable;
 
-LookupTable *lookup_table_init();
+LookupTable *init_lookup_table();
 
 #endif

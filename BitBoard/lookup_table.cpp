@@ -11,7 +11,7 @@ void init_files(LookupTable *lut);
 
 void init_squares(LookupTable *lut);
 
-LookupTable *lookup_table_init() {
+LookupTable *init_lookup_table() {
   LookupTable *lookup_table = NULL;
 
   lookup_table = (LookupTable *)malloc(sizeof(LookupTable));
@@ -82,5 +82,14 @@ void init_diagonals(LookupTable *lut) {
     for (j = i, z = 0; j <= RANKS; j++, z++) {
       lut->mask_antidiagonal[c].set(((j * 8) - 1) - z, true);
     }
+  }
+}
+
+void init_non_sliding_attacks(LookupTable *lut) {
+
+  bitset<64> board;
+
+  for (int i = 0; i < SQUARES; i++) {
+    lut->mask_pawn_attacks[0][i] = board;
   }
 }

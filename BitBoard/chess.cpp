@@ -11,7 +11,7 @@
 #define RUY_LOPEZ "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b"
 #define SCANDI "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w"
 
-Bitboard parse_fen(string fen_str) {
+BitBoard *parse_fen(string fen_str) {
   int i, j, str_counter;
 
   bitset<64> white_pawns;
@@ -68,12 +68,29 @@ Bitboard parse_fen(string fen_str) {
   Color turn;
   (turn_color == 'w') ? turn = WHITE : turn = BLACK;
 
-  return Bitboard(white_pawns, black_pawns, white_rooks, black_rooks,
-                  white_knights, black_knights, white_bishops, black_bishops,
-                  white_queens, black_queens, white_king, black_king, turn);
+  return init_custom_bitboard(white_pawns, black_pawns, white_rooks,
+                              black_rooks, white_knights, black_knights,
+                              white_bishops, black_bishops, white_queens,
+                              black_queens, white_king, black_king, turn);
 }
 
 int main() {
-  Bitboard fen_bit_board = parse_fen(SCANDI);
-  fen_bit_board.printBoard();
+
+  LookupTable *lut = init_lookup_table();
+
+  BitBoard *fen_bit_board = parse_fen(SCANDI);
+
+  if (fen_bit_board == NULL)
+    return 1;
+
+  print_bitboard(fen_bit_board, lut);
+
+  BitBoard *bit_board = init_bitboard();
+
+  if (bit_board == NULL)
+    return 1;
+
+  print_bitboard(bit_board, lut);
+
+  return 0;
 }
