@@ -394,20 +394,50 @@ bitset<64> Bitboard::attacksToSquare(int pos) {
   nonSlidingAttacks();
   slidingAttacks();
 
-  bitset<64> knights, kings, bishopAndQueens, rooksAndQueens;
+  bitset<64> knights, kings, bishopsAndQueens, rooksAndQueens;
 
   knights = piecesBB[WHITE_KNIGHTS_BB] | piecesBB[BLACK_KNIGHTS_BB];
   kings = piecesBB[WHITE_KING_BB] | piecesBB[BLACK_KING_BB];
-  bishopAndQueens = piecesBB[WHITE_QUEENS_BB] | piecesBB[BLACK_KING_BB];
-  bishopAndQueens |= piecesBB[WHITE_BISHOPS_BB] | piecesBB[BLACK_BISHOPS_BB];
+  bishopsAndQueens = piecesBB[WHITE_QUEENS_BB] | piecesBB[BLACK_KING_BB];
+  bishopsAndQueens |= piecesBB[WHITE_BISHOPS_BB] | piecesBB[BLACK_BISHOPS_BB];
   rooksAndQueens = piecesBB[WHITE_QUEENS_BB] | piecesBB[BLACK_QUEENS_BB];
   rooksAndQueens |= piecesBB[WHITE_ROOKS_BB] | piecesBB[BLACK_ROOKS_BB];
 
   return (pawnAttacks[WHITE][pos] & piecesBB[BLACK_PAWNS_BB],
           pawnAttacks[BLACK][pos] & piecesBB[WHITE_PAWNS_BB],
           knightAttacks[pos] & knights, kingAttacks[pos] & kings,
-          bishopAttacks[pos] & bishopAndQueens,
+          bishopAttacks[pos] & bishopsAndQueens,
           rookAttacks[pos] & rooksAndQueens);
+}
+
+bool Bitboard::isSquareAttacked(int pos, Color side) {
+  nonSlidingAttacks();
+  slidingAttacks();
+
+  bitset<64> pawns = (side == WHITE) ? whitePawns : blackPawns;
+  if ((pawnAttacks[(side == WHITE) ? BLACK : WHITE][pos] & pawns).any())
+    return true;
+
+  bitset<64> knights = (side == WHITE) ? whiteKnights : blackKnights;
+  if ((knightAttacks[pos] & knights).any())
+    return true;
+
+  bitset<64> kings = (side == WHITE) ? whiteKing : blackKing;
+  if ((kingAttacks[pos] & kings).any())
+    return true;
+
+  bitset<64> queens = (side == WHITE) ? whiteQueens : blackQueens;
+
+  bitset<64> bishopsAndQueens = (side == WHITE) ? whiteBishops : blackBishops;
+  bishopsAndQueens |= bishopsAndQueens | queens;
+  if ((bishopAttacks[pos] & bishopsAndQueens).any())
+    return true;
+
+  bitset<64> rooksAndQueens = (side == WHITE) ? whiteRooks : blackRooks;
+  if ((rookAttacks[pos] & rooksAndQueens).any())
+    return true;
+
+  return false;
 }
 
 void Bitboard::printBitboard(bitset<64> bitboard) {

@@ -80,8 +80,6 @@ int main() {
   Bitboard fen_bit_board = parse_fen("8/1P5p/R2Q4/3kp1p1/8/3P3P/2P1K1P1/1R6 b");
   fen_bit_board.setLookupTable(lut);
   fen_bit_board.printBoard();
-  fen_bit_board.printBitboard(fen_bit_board.generateRookAttacks(40));
-  fen_bit_board.printBitboard(fen_bit_board.attacksToSquare(43));
 
   free(lut);
   return 0;

@@ -123,6 +123,8 @@ public:
   /* Common chess methods */
   bitset<64> attacksToSquare(int pos);
 
+  bool isSquareAttacked(int pos, Color side);
+
   /* Output methods */
   void printBitboard(bitset<64> bitboard);
 
