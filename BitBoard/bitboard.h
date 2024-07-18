@@ -54,6 +54,9 @@ private:
   /* Attacking Bitboards */
   bitset<64> pawnAttacks[2][SQUARES];
   bitset<64> knightAttacks[SQUARES];
+  bitset<64> kingAttacks[SQUARES];
+  bitset<64> bishopAttacks[SQUARES];
+  bitset<64> rookAttacks[SQUARES];
 
   /* Chess game rules */
   Color turn;
@@ -72,7 +75,7 @@ private:
   /* Attacking bitboards methods */
   void nonSlidingAttacks();
 
-  void SlidingAttacks();
+  void slidingAttacks();
 
 public:
   /* Initialize a board with chess default starting position */
@@ -90,7 +93,7 @@ public:
   void setLookupTable(LookupTable *lut);
 
   /* Non sliding pieces attack generators */
-  bitset<64> generateKingAttacks(Color color);
+  bitset<64> generateKingAttacks(int pos);
 
   bitset<64> generateKnightAttacks(int pos);
 

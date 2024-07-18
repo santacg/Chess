@@ -143,10 +143,10 @@ Bitboard::Bitboard(Color none) {
 
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
 
-bitset<64> Bitboard::generateKingAttacks(Color color) {
-  bitset<64> king, pieces;
+bitset<64> Bitboard::generateKingAttacks(int pos) {
+  bitset<64> kings, pieces;
 
-  color == WHITE ? (king = whiteKing) : (king = blackKing);
+  bitset<64> king = lookupTable->piece_lookup[pos];
 
   bitset<64> a_file_clipping = king & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = king & lookupTable->clear_file[7];
@@ -177,7 +177,7 @@ bitset<64> Bitboard::generateKnightAttacks(int pos) {
   bitset<64> knights, pieces;
 
   knights = blackKnights | whiteKnights;
-  bitset<64> knight = lookupTable->piece_lookup[pos] & knights;
+  bitset<64> knight = lookupTable->piece_lookup[pos];
 
   bitset<64> a_file_clipping = knight & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = knight & lookupTable->clear_file[7];
@@ -211,7 +211,7 @@ bitset<64> Bitboard::generatePawnAttacks(Color color, int pos) {
   color == WHITE ? (pawn = whitePawns, pieces = allBlackPieces)
                  : (pawn = blackPawns, pieces = allWhitePieces);
 
-  pawn = lookupTable->piece_lookup[pos] & pawn;
+  pawn = lookupTable->piece_lookup[pos];
 
   bitset<64> a_file_clipping = pawn & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = pawn & lookupTable->clear_file[7];
@@ -345,7 +345,6 @@ bitset<64> Bitboard::generateRankAttacks(int pos) {
   bitset<64> attacks =
       lookupTable->mask_first_rank_attacks[4 * rank_occupancy_x2 + file];
 
-  printBitboard(attacks << rank_x8);
   return attacks << rank_x8;
 }
 
@@ -370,11 +369,46 @@ void Bitboard::nonSlidingAttacks() {
     pawnAttacks[WHITE][i] = generatePawnAttacks(WHITE, i);
     pawnAttacks[BLACK][i] = generatePawnAttacks(BLACK, i);
 
-    /* Get all possible knight attacks for each color and each square */
+    /* Get all possible knight attacks for each square */
+    knightAttacks[i] = generateKnightAttacks(i);
+
+    /* Get all possible king attacks for each square */
+    kingAttacks[i] = generateKingAttacks(i);
   }
 }
 
-bitset<64> Bitboard::attacksToSquare(int pos) { nonSlidingAttacks(); }
+void Bitboard::slidingAttacks() {
+  int i;
+
+  /* Loop over all squares */
+  for (i = 0; i < SQUARES; i++) {
+    /* Get all possible bishop attacks for each square */
+    bishopAttacks[i] = generateBishopAttacks(i);
+
+    /* Get all possible rook attacks for each square */
+    rookAttacks[i] = generateRookAttacks(i);
+  }
+}
+
+bitset<64> Bitboard::attacksToSquare(int pos) {
+  nonSlidingAttacks();
+  slidingAttacks();
+
+  bitset<64> knights, kings, bishopAndQueens, rooksAndQueens;
+
+  knights = piecesBB[WHITE_KNIGHTS_BB] | piecesBB[BLACK_KNIGHTS_BB];
+  kings = piecesBB[WHITE_KING_BB] | piecesBB[BLACK_KING_BB];
+  bishopAndQueens = piecesBB[WHITE_QUEENS_BB] | piecesBB[BLACK_KING_BB];
+  bishopAndQueens |= piecesBB[WHITE_BISHOPS_BB] | piecesBB[BLACK_BISHOPS_BB];
+  rooksAndQueens = piecesBB[WHITE_QUEENS_BB] | piecesBB[BLACK_QUEENS_BB];
+  rooksAndQueens |= piecesBB[WHITE_ROOKS_BB] | piecesBB[BLACK_ROOKS_BB];
+
+  return (pawnAttacks[WHITE][pos] & piecesBB[BLACK_PAWNS_BB],
+          pawnAttacks[BLACK][pos] & piecesBB[WHITE_PAWNS_BB],
+          knightAttacks[pos] & knights, kingAttacks[pos] & kings,
+          bishopAttacks[pos] & bishopAndQueens,
+          rookAttacks[pos] & rooksAndQueens);
+}
 
 void Bitboard::printBitboard(bitset<64> bitboard) {
   int i, j;
