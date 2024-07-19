@@ -4,33 +4,46 @@
 #include <bitset>
 #include <iostream>
 
-#define WHITE_PAWNS_POS 0x000000000000FF00
-#define WHITE_ROOKS_POS 0x0000000000000081
-#define WHITE_KNIGHTS_POS 0x0000000000000042
-#define WHITE_BISHOPS_POS 0x0000000000000024
-#define WHITE_QUEENS_POS 0x0000000000000008
-#define WHITE_KING_POS 0x0000000000000010
+#define WHITE_PAWNS_BB 0
+#define BLACK_PAWNS_BB 1
+#define WHITE_ROOKS_BB 2
+#define BLACK_ROOKS_BB 3
+#define WHITE_KNIGHTS_BB 4
+#define BLACK_KNIGHTS_BB 5
+#define WHITE_BISHOPS_BB 6
+#define BLACK_BISHOPS_BB 7
+#define WHITE_QUEENS_BB 8
+#define BLACK_QUEENS_BB 9
+#define WHITE_KING_BB 10
+#define BLACK_KING_BB 11
 
-#define BLACK_PAWNS_POS 0x00FF000000000000
-#define BLACK_ROOKS_POS 0x8100000000000000
-#define BLACK_KNIGHTS_POS 0x4200000000000000
-#define BLACK_BISHOPS_POS 0x2400000000000000
-#define BLACK_QUEENS_POS 0x0800000000000000
-#define BLACK_KING_POS 0x1000000000000000
+#define WHITE_PAWNS_INIT 0x000000000000FF00
+#define WHITE_ROOKS_INIT 0x0000000000000081
+#define WHITE_KNIGHTS_INIT 0x0000000000000042
+#define WHITE_BISHOPS_INIT 0x0000000000000024
+#define WHITE_QUEENS_INIT 0x0000000000000008
+#define WHITE_KING_INIT 0x0000000000000010
+
+#define BLACK_PAWNS_INIT 0x00FF000000000000
+#define BLACK_ROOKS_INIT 0x8100000000000000
+#define BLACK_KNIGHTS_INIT 0x4200000000000000
+#define BLACK_BISHOPS_INIT 0x2400000000000000
+#define BLACK_QUEENS_INIT 0x0800000000000000
+#define BLACK_KING_INIT 0x1000000000000000
 
 Bitboard::Bitboard() {
-  whitePawns = WHITE_PAWNS_POS;
-  blackPawns = BLACK_PAWNS_POS;
-  whiteRooks = WHITE_ROOKS_POS;
-  blackRooks = BLACK_ROOKS_POS;
-  whiteKnights = WHITE_KNIGHTS_POS;
-  blackKnights = BLACK_KNIGHTS_POS;
-  whiteBishops = WHITE_BISHOPS_POS;
-  blackBishops = BLACK_BISHOPS_POS;
-  whiteQueens = WHITE_QUEENS_POS;
-  blackQueens = BLACK_QUEENS_POS;
-  whiteKing = WHITE_KING_POS;
-  blackKing = BLACK_KING_POS;
+  whitePawns = WHITE_PAWNS_INIT;
+  blackPawns = BLACK_PAWNS_INIT;
+  whiteRooks = WHITE_ROOKS_INIT;
+  blackRooks = BLACK_ROOKS_INIT;
+  whiteKnights = WHITE_KNIGHTS_INIT;
+  blackKnights = BLACK_KNIGHTS_INIT;
+  whiteBishops = WHITE_BISHOPS_INIT;
+  blackBishops = BLACK_BISHOPS_INIT;
+  whiteQueens = WHITE_QUEENS_INIT;
+  blackQueens = BLACK_QUEENS_INIT;
+  whiteKing = WHITE_KING_INIT;
+  blackKing = BLACK_KING_INIT;
 
   allWhitePieces = (whiteKing | whiteQueens | whiteBishops | whiteKnights |
                     whiteRooks | whitePawns);
@@ -143,10 +156,10 @@ Bitboard::Bitboard(Color none) {
 
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
 
-bitset<64> Bitboard::generateKingAttacks(int pos) {
+bitset<64> Bitboard::generateKingAttacks(int square) {
   bitset<64> kings, pieces;
 
-  bitset<64> king = lookupTable->piece_lookup[pos];
+  bitset<64> king = lookupTable->piece_lookup[square];
 
   bitset<64> a_file_clipping = king & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = king & lookupTable->clear_file[7];
@@ -173,11 +186,11 @@ bitset<64> Bitboard::generateKingMoves(Color color) {
   return generateKingAttacks(color) & ~pieces;
 }
 
-bitset<64> Bitboard::generateKnightAttacks(int pos) {
+bitset<64> Bitboard::generateKnightAttacks(int square) {
   bitset<64> knights, pieces;
 
   knights = blackKnights | whiteKnights;
-  bitset<64> knight = lookupTable->piece_lookup[pos];
+  bitset<64> knight = lookupTable->piece_lookup[square];
 
   bitset<64> a_file_clipping = knight & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = knight & lookupTable->clear_file[7];
@@ -197,21 +210,21 @@ bitset<64> Bitboard::generateKnightAttacks(int pos) {
           right_up_move | right_down_move | left_up_move | left_down_move);
 }
 
-bitset<64> Bitboard::generateKnightMoves(Color color, int pos) {
+bitset<64> Bitboard::generateKnightMoves(Color color, int square) {
   bitset<64> pieces;
 
   color == WHITE ? (pieces = allWhitePieces) : (pieces = allBlackPieces);
 
-  return generateKnightAttacks(pos) & ~pieces;
+  return generateKnightAttacks(square) & ~pieces;
 }
 
-bitset<64> Bitboard::generatePawnAttacks(Color color, int pos) {
+bitset<64> Bitboard::generatePawnAttacks(Color color, int square) {
   bitset<64> pawn, pieces;
 
   color == WHITE ? (pawn = whitePawns, pieces = allBlackPieces)
                  : (pawn = blackPawns, pieces = allWhitePieces);
 
-  pawn = lookupTable->piece_lookup[pos];
+  pawn = lookupTable->piece_lookup[square];
 
   bitset<64> a_file_clipping = pawn & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = pawn & lookupTable->clear_file[7];
@@ -223,14 +236,14 @@ bitset<64> Bitboard::generatePawnAttacks(Color color, int pos) {
   return valid_attacks;
 }
 
-bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
+bitset<64> Bitboard::generatePawnMoves(Color color, int square) {
   bitset<64> pawn, pieces;
   int rank;
 
   color == WHITE ? (pawn = whitePawns, rank = 2, pieces = allBlackPieces)
                  : (pawn = blackPawns, rank = 5, pieces = allWhitePieces);
 
-  pawn = lookupTable->piece_lookup[pos] & pawn;
+  pawn = lookupTable->piece_lookup[square] & pawn;
 
   bitset<64> pawn_one_step, pawn_two_steps;
 
@@ -245,18 +258,18 @@ bitset<64> Bitboard::generatePawnMoves(Color color, int pos) {
         ((pawn_one_step & lookupTable->mask_rank[rank]) >> 8) & ~allPieces;
   }
 
-  bitset<64> valid_attacks = generatePawnAttacks(color, pos);
+  bitset<64> valid_attacks = generatePawnAttacks(color, square);
 
   bitset<64> valid_moves = pawn_one_step | pawn_two_steps | valid_attacks;
 
   return valid_moves;
 }
 
-bitset<64> Bitboard::generateDiagonalAttacks(int pos) {
+bitset<64> Bitboard::generateDiagonalAttacks(int square) {
   bitset<64> forward, reverse;
 
-  int rank_index = pos / 8;
-  int file_index = pos % 8;
+  int rank_index = square / 8;
+  int file_index = square % 8;
   int diagonal_index = (rank_index - file_index) & 15;
 
   // Getting the pieces assocciated to the diagonal of the sliding piece
@@ -268,11 +281,11 @@ bitset<64> Bitboard::generateDiagonalAttacks(int pos) {
 
   // Getting everything but the sliding piece given the diagonal pieces
   forward = (bitset<64>)(forward.to_ulong() -
-                         (lookupTable->piece_lookup[pos] << 1).to_ulong());
+                         (lookupTable->piece_lookup[square] << 1).to_ulong());
   reverse =
       (bitset<64>)(reverse.to_ulong() -
                    (byteswap(
-                       (lookupTable->piece_lookup[pos] << 1).to_ulong())));
+                       (lookupTable->piece_lookup[square] << 1).to_ulong())));
 
   forward ^= (bitset<64>)byteswap(reverse.to_ulong());
   forward &= diagonal;
@@ -280,11 +293,11 @@ bitset<64> Bitboard::generateDiagonalAttacks(int pos) {
   return forward;
 }
 
-bitset<64> Bitboard::generateAntiDiagonalAttacks(int pos) {
+bitset<64> Bitboard::generateAntiDiagonalAttacks(int square) {
   bitset<64> forward, reverse;
 
-  int rank_index = pos / 8;
-  int file_index = pos % 8;
+  int rank_index = square / 8;
+  int file_index = square % 8;
   int anti_diagonal_index = (rank_index + file_index) ^ 7;
 
   // Getting the pieces assocciated to the diagonal of the sliding piece
@@ -297,11 +310,11 @@ bitset<64> Bitboard::generateAntiDiagonalAttacks(int pos) {
 
   // Getting everything but the sliding piece given the diagonal pieces
   forward = (bitset<64>)(forward.to_ulong() -
-                         (lookupTable->piece_lookup[pos] << 1).to_ulong());
+                         (lookupTable->piece_lookup[square] << 1).to_ulong());
   reverse =
       (bitset<64>)(reverse.to_ulong() -
                    (byteswap(
-                       (lookupTable->piece_lookup[pos] << 1).to_ulong())));
+                       (lookupTable->piece_lookup[square] << 1).to_ulong())));
 
   forward ^= (bitset<64>)byteswap(reverse.to_ulong());
   forward &= anti_diagonal;
@@ -309,10 +322,10 @@ bitset<64> Bitboard::generateAntiDiagonalAttacks(int pos) {
   return forward;
 }
 
-bitset<64> Bitboard::generateFileAttacks(int pos) {
+bitset<64> Bitboard::generateFileAttacks(int square) {
   bitset<64> forward, reverse;
 
-  int file_index = pos % 8;
+  int file_index = square % 8;
 
   // Getting the pieces assocciated to the diagonal of the sliding piece
   bitset<64> occupancy = allPieces;
@@ -323,11 +336,11 @@ bitset<64> Bitboard::generateFileAttacks(int pos) {
 
   // Getting everything but the sliding piece given the diagonal pieces
   forward = (bitset<64>)(forward.to_ulong() -
-                         (lookupTable->piece_lookup[pos] << 1).to_ulong());
+                         (lookupTable->piece_lookup[square] << 1).to_ulong());
   reverse =
       (bitset<64>)(reverse.to_ulong() -
                    (byteswap(
-                       (lookupTable->piece_lookup[pos] << 1).to_ulong())));
+                       (lookupTable->piece_lookup[square] << 1).to_ulong())));
 
   forward ^= (bitset<64>)byteswap(reverse.to_ulong());
   forward &= file;
@@ -335,9 +348,9 @@ bitset<64> Bitboard::generateFileAttacks(int pos) {
   return forward;
 }
 
-bitset<64> Bitboard::generateRankAttacks(int pos) {
-  int file = pos % 8;
-  int rank = pos / 8;
+bitset<64> Bitboard::generateRankAttacks(int square) {
+  int file = square % 8;
+  int rank = square / 8;
 
   int rank_x8 = rank * 8;
   int rank_occupancy_x2 = (allPieces >> rank_x8).to_ulong() & 2 * 63;
@@ -348,16 +361,16 @@ bitset<64> Bitboard::generateRankAttacks(int pos) {
   return attacks << rank_x8;
 }
 
-bitset<64> Bitboard::generateBishopAttacks(int pos) {
-  return generateDiagonalAttacks(pos) | generateAntiDiagonalAttacks(pos);
+bitset<64> Bitboard::generateBishopAttacks(int square) {
+  return generateDiagonalAttacks(square) | generateAntiDiagonalAttacks(square);
 }
 
-bitset<64> Bitboard::generateRookAttacks(int pos) {
-  return generateFileAttacks(pos) | generateRankAttacks(pos);
+bitset<64> Bitboard::generateRookAttacks(int square) {
+  return generateFileAttacks(square) | generateRankAttacks(square);
 }
 
-bitset<64> Bitboard::generateQueenAttacks(int pos) {
-  return generateBishopAttacks(pos) | generateRookAttacks(pos);
+bitset<64> Bitboard::generateQueenAttacks(int square) {
+  return generateBishopAttacks(square) | generateRookAttacks(square);
 }
 
 void Bitboard::nonSlidingAttacks() {
@@ -365,14 +378,14 @@ void Bitboard::nonSlidingAttacks() {
 
   /* Loop over all squares */
   for (i = 0; i < SQUARES; i++) {
-    /* Get all possible pawn attacks for each color and each square */
+    /* Get all squaresible pawn attacks for each color and each square */
     pawnAttacks[WHITE][i] = generatePawnAttacks(WHITE, i);
     pawnAttacks[BLACK][i] = generatePawnAttacks(BLACK, i);
 
-    /* Get all possible knight attacks for each square */
+    /* Get all squaresible knight attacks for each square */
     knightAttacks[i] = generateKnightAttacks(i);
 
-    /* Get all possible king attacks for each square */
+    /* Get all squaresible king attacks for each square */
     kingAttacks[i] = generateKingAttacks(i);
   }
 }
@@ -390,54 +403,71 @@ void Bitboard::slidingAttacks() {
   }
 }
 
-bitset<64> Bitboard::attacksToSquare(int pos) {
+bitset<64> Bitboard::attacksToSquare(int square) {
   nonSlidingAttacks();
   slidingAttacks();
 
   bitset<64> knights, kings, bishopsAndQueens, rooksAndQueens;
 
-  knights = piecesBB[WHITE_KNIGHTS_BB] | piecesBB[BLACK_KNIGHTS_BB];
-  kings = piecesBB[WHITE_KING_BB] | piecesBB[BLACK_KING_BB];
-  bishopsAndQueens = piecesBB[WHITE_QUEENS_BB] | piecesBB[BLACK_KING_BB];
-  bishopsAndQueens |= piecesBB[WHITE_BISHOPS_BB] | piecesBB[BLACK_BISHOPS_BB];
-  rooksAndQueens = piecesBB[WHITE_QUEENS_BB] | piecesBB[BLACK_QUEENS_BB];
-  rooksAndQueens |= piecesBB[WHITE_ROOKS_BB] | piecesBB[BLACK_ROOKS_BB];
+  /* Union all the same moveset pieces */
+  knights = whiteKnights | blackKnights;
+  kings = whiteKing | blackKing;
+  bitset<64> queens = whiteQueens | blackQueens;
+  bishopsAndQueens = whiteBishops | blackBishops | queens;
+  rooksAndQueens = whiteRooks | blackRooks | queens;
 
-  return (pawnAttacks[WHITE][pos] & piecesBB[BLACK_PAWNS_BB],
-          pawnAttacks[BLACK][pos] & piecesBB[WHITE_PAWNS_BB],
-          knightAttacks[pos] & knights, kingAttacks[pos] & kings,
-          bishopAttacks[pos] & bishopsAndQueens,
-          rookAttacks[pos] & rooksAndQueens);
+  /* Intersect them with attacks sets */
+  return (pawnAttacks[WHITE][square] & blackPawns,
+          pawnAttacks[BLACK][square] & whitePawns,
+          knightAttacks[square] & knights, kingAttacks[square] & kings,
+          bishopAttacks[square] & bishopsAndQueens,
+          rookAttacks[square] & rooksAndQueens);
 }
 
-bool Bitboard::isSquareAttacked(int pos, Color side) {
+bool Bitboard::isSquareAttacked(Color side, int square) {
   nonSlidingAttacks();
   slidingAttacks();
 
+  /* Intersect side pieces with opponent attacks */
   bitset<64> pawns = (side == WHITE) ? whitePawns : blackPawns;
-  if ((pawnAttacks[(side == WHITE) ? BLACK : WHITE][pos] & pawns).any())
+  if ((pawnAttacks[(side == WHITE) ? BLACK : WHITE][square] & pawns).any())
     return true;
 
   bitset<64> knights = (side == WHITE) ? whiteKnights : blackKnights;
-  if ((knightAttacks[pos] & knights).any())
+  if ((knightAttacks[square] & knights).any())
     return true;
 
   bitset<64> kings = (side == WHITE) ? whiteKing : blackKing;
-  if ((kingAttacks[pos] & kings).any())
+  if ((kingAttacks[square] & kings).any())
     return true;
 
   bitset<64> queens = (side == WHITE) ? whiteQueens : blackQueens;
 
   bitset<64> bishopsAndQueens = (side == WHITE) ? whiteBishops : blackBishops;
   bishopsAndQueens |= bishopsAndQueens | queens;
-  if ((bishopAttacks[pos] & bishopsAndQueens).any())
+  if ((bishopAttacks[square] & bishopsAndQueens).any())
     return true;
 
   bitset<64> rooksAndQueens = (side == WHITE) ? whiteRooks : blackRooks;
-  if ((rookAttacks[pos] & rooksAndQueens).any())
+  if ((rookAttacks[square] & rooksAndQueens).any())
     return true;
 
   return false;
+}
+
+void Bitboard::generateMoves() {
+
+  /* Loop over all the bitboards */
+  for (int i = 0; i < 12; i++) {
+
+    /* Get a copy of each bitboard */
+    bitset<64> bb = piecesBB[i];
+
+    /* Generate white pawns moves */
+    if (i == WHITE_PAWNS_BB) {
+      /* Get the squares of each white pawn */
+    }
+  }
 }
 
 void Bitboard::printBitboard(bitset<64> bitboard) {
@@ -474,10 +504,6 @@ void Bitboard::printBoard() {
   int i, j, z;
   char c = 'a';
 
-  /* Chess unicode ascii pieces */
-  const char *ascii_pieces[12] = {"♙", "♟", "♖", "♜", "♘", "♞",
-                                  "♗", "♝", "♛", "♕", "♔", "♚"};
-
   cout << endl;
 
   for (i = RANKS - 1; i >= 0; i--) {
@@ -494,7 +520,7 @@ void Bitboard::printBoard() {
         }
       }
 
-      (piece == -1) ? cout << '.' : cout << ascii_pieces[piece];
+      (piece == -1) ? cout << '.' : cout << asciiPieces[piece];
       cout << " ";
     }
 

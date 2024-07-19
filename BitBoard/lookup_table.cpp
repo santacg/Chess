@@ -5,9 +5,18 @@
 #include <cstdio>
 #include <cstdlib>
 
+#define A_FILE 0x0101010101010101;
+#define H_FILE 0x8080808080808080;
+#define FIRST_RANK 0x00000000000000FF;
+#define EIGHTH_RANK 0xFF00000000000000;
+#define MAIN_DIAGONAL 0x8040201008040201;
+#define MAIN_ANTIDIAGONAL 0x0102040810204080;
+
 void init_diagonals(LookupTable *lut);
 
 void init_files(LookupTable *lut);
+
+void init_ranks(LookupTable *lut);
 
 void init_squares(LookupTable *lut);
 
@@ -22,28 +31,11 @@ LookupTable *init_lookup_table() {
   if (lookup_table == NULL)
     return NULL;
 
-  for (int i = 0; i < RANKS; i++) {
-    lookup_table->clear_rank[i].reset();
-    lookup_table->mask_rank[i].reset();
-  }
-
-  for (int i = 0; i < FILES; i++) {
-    lookup_table->clear_file[i].reset();
-    lookup_table->mask_file[i].reset();
-  }
-
-  for (int i = 0; i < DIAGONALS; i++) {
-    lookup_table->mask_diagonal[i].reset();
-    lookup_table->mask_antidiagonal[i].reset();
-  }
-
-  for (int i = 0; i < SQUARES; i++) {
-    lookup_table->piece_lookup[i].reset();
-  }
-
   init_squares(lookup_table);
 
   init_files(lookup_table);
+
+  init_ranks(lookup_table);
 
   init_diagonals(lookup_table);
 
@@ -54,60 +46,70 @@ LookupTable *init_lookup_table() {
 
 void init_squares(LookupTable *lut) {
   for (int i = 0; i < SQUARES; i++) {
+    lut->piece_lookup[i].reset();
     lut->piece_lookup[i].set(i, true);
   }
 }
 
 void init_files(LookupTable *lut) {
   int i;
-  bitset<64> set = 0xFFFFFFFFFFFFFF00;
+
+  bitset<64> file = A_FILE;
+
+  for (i = 0; i < FILES; i++) {
+    lut->mask_file[i] = file;
+    lut->clear_file[i] = ~file;
+    file <<= 1;
+  }
+}
+
+void init_ranks(LookupTable *lut) {
+  int i;
+
+  bitset<64> rank = FIRST_RANK;
+
   for (i = 0; i < RANKS; i++) {
-    lut->clear_rank[i] = set;
-    lut->mask_rank[i] = set.flip();
-    set.flip();
-    set = rotl(set.to_ullong(), 8);
-  }
-
-  set.reset();
-  for (i = 0; i < FILES; i++) {
-    set.set(i * 8, true);
-  }
-
-  for (i = 0; i < FILES; i++) {
-    lut->mask_file[i] = set;
-    lut->clear_file[i] = set.flip();
-    set.flip();
-    set <<= 1;
+    lut->mask_rank[i] = rank;
+    lut->clear_rank[i] = ~rank;
+    rank <<= 8;
   }
 }
 
 void init_diagonals(LookupTable *lut) {
 
-  int i, j, z;
+  int i;
+
+  bitset<64> diagonal = MAIN_DIAGONAL;
+
   for (i = 0; i < DIAGONALS / 2; i++) {
-    for (j = i, z = 0; j < RANKS; j++, z++) {
-      lut->mask_diagonal[i].set((j * 8) + z, true);
-    }
+    lut->mask_diagonal[i] = diagonal;
+    diagonal <<= 8;
   }
 
-  int c;
-  for (c = 15; c > 8; i--, c--) {
-    for (j = i - 1, z = 0; j > 0; j--, z++) {
-      lut->mask_diagonal[c].set(((j * 8) - 1) - z, true);
-    }
+  diagonal = MAIN_DIAGONAL;
+  diagonal >>= 8;
+  for (i = 15; i >= DIAGONALS / 2; i--) {
+    lut->mask_diagonal[i] = diagonal;
+    diagonal >>= 8;
   }
 
-  for (c = 0, i = RANKS - 1; i >= 0; i--, c++) {
-    for (j = i, z = 0; j >= 0; j--, z++) {
-      lut->mask_antidiagonal[c].set((j * 8) + z, true);
-    }
+  lut->mask_diagonal[DIAGONALS].reset();
+
+  bitset<64> antidiagonal = MAIN_ANTIDIAGONAL;
+
+  for (i = 0; i < DIAGONALS / 2; i++) {
+    lut->mask_antidiagonal[i] = antidiagonal;
+    antidiagonal >>= 8;
   }
 
-  for (i = 2, c = 15; c > 8; i++, c--) {
-    for (j = i, z = 0; j <= RANKS; j++, z++) {
-      lut->mask_antidiagonal[c].set(((j * 8) - 1) - z, true);
-    }
+  antidiagonal = MAIN_ANTIDIAGONAL;
+  antidiagonal <<= 8;
+  for (i = 15; i >= DIAGONALS / 2; i--) {
+    lut->mask_antidiagonal[i] = antidiagonal;
+    antidiagonal <<= 8;
   }
+
+  lut->mask_antidiagonal[DIAGONALS].reset();
 }
 
 int generate_rank_attack(int o, int f) {

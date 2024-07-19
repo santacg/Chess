@@ -4,19 +4,6 @@
 #include "lookup_table.h"
 #include <bitset>
 
-#define WHITE_PAWNS_BB 0
-#define BLACK_PAWNS_BB 1
-#define WHITE_ROOKS_BB 2
-#define BLACK_ROOKS_BB 3
-#define WHITE_KNIGHTS_BB 4
-#define BLACK_KNIGHTS_BB 5
-#define WHITE_BISHOPS_BB 6
-#define BLACK_BISHOPS_BB 7
-#define WHITE_QUEENS_BB 8
-#define BLACK_QUEENS_BB 9
-#define WHITE_KING_BB 10
-#define BLACK_KING_BB 11
-
 using namespace std;
 
 enum Color { WHITE, BLACK, NONE };
@@ -61,6 +48,11 @@ private:
   /* Chess game rules */
   Color turn;
 
+  /* Utils */
+  /* Chess unicode ascii pieces */
+  const char *asciiPieces[12] = {"♙", "♟", "♖", "♜", "♘", "♞",
+                                 "♗", "♝", "♛", "♕", "♔", "♚"};
+
   /* Private move generator methods */
   /* Hyperbolee Quiessence algorithm */
   bitset<64> generateDiagonalAttacks(int pos);
@@ -76,6 +68,8 @@ private:
   void nonSlidingAttacks();
 
   void slidingAttacks();
+
+  void generateMoves();
 
 public:
   /* Initialize a board with chess default starting position */
@@ -123,7 +117,7 @@ public:
   /* Common chess methods */
   bitset<64> attacksToSquare(int pos);
 
-  bool isSquareAttacked(int pos, Color side);
+  bool isSquareAttacked(Color side, int pos);
 
   /* Output methods */
   void printBitboard(bitset<64> bitboard);
