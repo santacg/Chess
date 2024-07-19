@@ -157,8 +157,6 @@ Bitboard::Bitboard(Color none) {
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
 
 bitset<64> Bitboard::generateKingAttacks(int square) {
-  bitset<64> kings, pieces;
-
   bitset<64> king = lookupTable->piece_lookup[square];
 
   bitset<64> a_file_clipping = king & lookupTable->clear_file[0];
@@ -178,18 +176,15 @@ bitset<64> Bitboard::generateKingAttacks(int square) {
           diagonal_left_up_move | diagonal_right_up_move);
 }
 
-bitset<64> Bitboard::generateKingMoves(Color color) {
+bitset<64> Bitboard::generateKingMoves(Color color, int square) {
   bitset<64> pieces;
 
   color == WHITE ? (pieces = allWhitePieces) : (pieces = allBlackPieces);
 
-  return generateKingAttacks(color) & ~pieces;
+  return generateKingAttacks(square) & ~pieces;
 }
 
 bitset<64> Bitboard::generateKnightAttacks(int square) {
-  bitset<64> knights, pieces;
-
-  knights = blackKnights | whiteKnights;
   bitset<64> knight = lookupTable->piece_lookup[square];
 
   bitset<64> a_file_clipping = knight & lookupTable->clear_file[0];
@@ -219,50 +214,56 @@ bitset<64> Bitboard::generateKnightMoves(Color color, int square) {
 }
 
 bitset<64> Bitboard::generatePawnAttacks(Color color, int square) {
-  bitset<64> pawn, pieces;
-
-  color == WHITE ? (pawn = whitePawns, pieces = allBlackPieces)
-                 : (pawn = blackPawns, pieces = allWhitePieces);
+  bitset<64> pawn;
 
   pawn = lookupTable->piece_lookup[square];
 
   bitset<64> a_file_clipping = pawn & lookupTable->clear_file[0];
   bitset<64> h_file_clipping = pawn & lookupTable->clear_file[7];
 
-  bitset<64> valid_attacks =
-      (((pawn & a_file_clipping) << 7) | ((pawn & h_file_clipping) << 9)) &
-      pieces;
+  bitset<64> attacks;
+  if (color == WHITE) {
+    attacks = a_file_clipping << 7 | h_file_clipping << 9;
 
-  return valid_attacks;
+    if ((attacks & lookupTable->mask_rank[7]).any())
+      cout << "capture promotion";
+  } else {
+    attacks = a_file_clipping >> 9 | h_file_clipping >> 7;
+
+    if ((attacks & lookupTable->mask_rank[0]).any())
+      cout << "capture promotion";
+  }
+
+  return attacks;
 }
 
 bitset<64> Bitboard::generatePawnMoves(Color color, int square) {
-  bitset<64> pawn, pieces;
+  bitset<64> pawn;
   int rank;
 
-  color == WHITE ? (pawn = whitePawns, rank = 2, pieces = allBlackPieces)
-                 : (pawn = blackPawns, rank = 5, pieces = allWhitePieces);
-
-  pawn = lookupTable->piece_lookup[square] & pawn;
-
+  pawn = lookupTable->piece_lookup[square];
   bitset<64> pawn_one_step, pawn_two_steps;
 
   /* dumb7fill for two steps generation wiht an unrolled loop*/
   if (color == WHITE) {
     pawn_one_step = (pawn << 8) & ~allPieces;
     pawn_two_steps =
-        ((pawn_one_step & lookupTable->mask_rank[rank]) << 8) & ~allPieces;
+        ((pawn_one_step & lookupTable->mask_rank[2]) << 8) & ~allPieces;
+
+    if ((pawn_one_step & lookupTable->mask_rank[7]).any())
+      cout << "promotion" << endl;
   } else {
     pawn_one_step = (pawn >> 8) & ~allPieces;
     pawn_two_steps =
-        ((pawn_one_step & lookupTable->mask_rank[rank]) >> 8) & ~allPieces;
+        ((pawn_one_step & lookupTable->mask_rank[5]) >> 8) & ~allPieces;
+
+    if ((pawn_one_step & lookupTable->mask_rank[0]).any())
+      cout << "promotion" << endl;
   }
 
-  bitset<64> valid_attacks = generatePawnAttacks(color, square);
+  bitset<64> moves = pawn_one_step | pawn_two_steps;
 
-  bitset<64> valid_moves = pawn_one_step | pawn_two_steps | valid_attacks;
-
-  return valid_moves;
+  return moves;
 }
 
 bitset<64> Bitboard::generateDiagonalAttacks(int square) {
@@ -460,12 +461,56 @@ void Bitboard::generateMoves() {
   /* Loop over all the bitboards */
   for (int i = 0; i < 12; i++) {
 
-    /* Get a copy of each bitboard */
+    /* Get a copy of each piece bitboard */
     bitset<64> bb = piecesBB[i];
 
     /* Generate white pawns moves */
     if (i == WHITE_PAWNS_BB) {
-      /* Get the squares of each white pawn */
+      /* Loop over all white pawns */
+      while (bb.any()) {
+        /* Extract the less significant bit */
+        int source_square = countr_zero(bb.to_ulong());
+
+        /* Generate quiet moves */
+        generatePawnMoves(WHITE, source_square);
+
+        /* Generate captures */
+        generatePawnAttacks(WHITE, source_square) & allBlackPieces;
+
+        /* Pop the less significant bit */
+        bb.set(source_square, false);
+      }
+
+    } else if (i == BLACK_PAWNS_BB) {
+      /* Loop over all black pawns */
+      while (bb.any()) {
+        /* Extract the less significant bit */
+        int source_square = countr_zero(bb.to_ulong());
+
+        /* Generate quiet moves */
+        generatePawnMoves(BLACK, source_square);
+
+        /* Generate captures */
+        generatePawnAttacks(BLACK, source_square) & allWhitePieces;
+
+        /* Pop the less significant bit */
+        bb.set(source_square, false);
+      }
+    } else if (i == WHITE_ROOKS_BB) {
+      /* Loop over all white rooks */
+      while (bb.any()) {
+        /* Extract the less significant bit */
+        int source_square = countr_zero(bb.to_ulong());
+
+        /* Generate moves */
+        printBitboard(generateRookAttacks(source_square));
+
+        /* Generate captures */
+        generateRookAttacks(source_square) & allBlackPieces;
+
+        /* Pop the less significant bit */
+        bb.set(source_square, false);
+      }
     }
   }
 }
@@ -514,7 +559,8 @@ void Bitboard::printBoard() {
       int piece = -1;
 
       for (z = 0; z < 12; z++) {
-        if ((piecesBB[z] & lookupTable->piece_lookup[square]).any() == true) {
+        bitset<64> pieces = piecesBB[z];
+        if ((pieces & lookupTable->piece_lookup[square]).any() == true) {
           piece = z;
           break;
         }

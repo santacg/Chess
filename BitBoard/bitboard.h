@@ -51,7 +51,7 @@ private:
   /* Utils */
   /* Chess unicode ascii pieces */
   const char *asciiPieces[12] = {"♙", "♟", "♖", "♜", "♘", "♞",
-                                 "♗", "♝", "♛", "♕", "♔", "♚"};
+                                 "♗", "♝", "♕", "♛", "♔", "♚"};
 
   /* Private move generator methods */
   /* Hyperbolee Quiessence algorithm */
@@ -68,8 +68,6 @@ private:
   void nonSlidingAttacks();
 
   void slidingAttacks();
-
-  void generateMoves();
 
 public:
   /* Initialize a board with chess default starting position */
@@ -101,7 +99,7 @@ public:
   bitset<64> generateQueenAttacks(int pos);
 
   /* Non sliding pieces move generators */
-  bitset<64> generateKingMoves(Color color);
+  bitset<64> generateKingMoves(Color color, int pos);
 
   bitset<64> generateKnightMoves(Color color, int pos);
 
@@ -119,6 +117,7 @@ public:
 
   bool isSquareAttacked(Color side, int pos);
 
+  void generateMoves();
   /* Output methods */
   void printBitboard(bitset<64> bitboard);
 

@@ -2,7 +2,6 @@
 #include "lookup_table.h"
 #include <bitset>
 #include <cctype>
-#include <codecvt>
 #include <endian.h>
 #include <iostream>
 #include <string>
@@ -77,9 +76,11 @@ Bitboard parse_fen(string fen_str) {
 int main() {
   LookupTable *lut = init_lookup_table();
 
-  Bitboard fen_bit_board = parse_fen("8/1P5p/R2Q4/3kp1p1/8/3P3P/2P1K1P1/1R6 b");
+  Bitboard fen_bit_board =
+      parse_fen("r1b1kN2/1ppp2p1/p4n1p/4p3/1b2P3/1BP5/RP3PPP/1NBQK2R b");
   fen_bit_board.setLookupTable(lut);
   fen_bit_board.printBoard();
+  fen_bit_board.generateMoves();
 
   free(lut);
   return 0;
