@@ -3,7 +3,6 @@
 #include <bitset>
 #include <cctype>
 #include <endian.h>
-#include <iostream>
 #include <string>
 
 /* Fen positions */
