@@ -86,6 +86,23 @@ private:
   /* First rank attacks algorithm */
   bitset<64> generateRankAttacks(int pos);
 
+  /* Non sliding pieces attack generators */
+  bitset<64> generateKingAttacks(int pos);
+
+  bitset<64> generateKnightAttacks(int pos);
+
+  bitset<64> generatePawnAttacks(Color color, int pos);
+
+  /* Sliding pieces attack generators */
+  bitset<64> generateBishopAttacks(int pos);
+
+  bitset<64> generateRookAttacks(int pos);
+
+  bitset<64> generateQueenAttacks(int pos);
+
+  /* Pawn move generator */
+  bitset<64> generatePawnMoves(Color color, int pos);
+
   /* Attacking bitboards methods */
   void nonSlidingAttacks();
 
@@ -93,12 +110,11 @@ private:
 
   /* Move processing function */
   void pieceMoves(bitset<64> bb, Color color, 
-      bitset<64>(Bitboard::*move_generator)(Color , int), 
-      bitset<64>(Bitboard::*attack_generator)(int));
+      bitset<64>(Bitboard::*attackGenerator)(int));
 
   void pieceMoves(bitset<64> bb, Color color, 
-      bitset<64>(Bitboard::*move_generator)(Color , int), 
-      bitset<64>(Bitboard::*attack_generator)(Color, int));
+      bitset<64>(Bitboard::*moveGenerator)(Color , int), 
+      bitset<64>(Bitboard::*attackGenerator)(Color, int));
 
 public:
   /* Initialize a board with chess default starting position */
@@ -115,40 +131,13 @@ public:
 
   void setLookupTable(LookupTable *lut);
 
-  /* Non sliding pieces attack generators */
-  bitset<64> generateKingAttacks(int pos);
-
-  bitset<64> generateKnightAttacks(int pos);
-
-  bitset<64> generatePawnAttacks(Color color, int pos);
-
-  /* Sliding pieces attack generators */
-  bitset<64> generateBishopAttacks(int pos);
-
-  bitset<64> generateRookAttacks(int pos);
-
-  bitset<64> generateQueenAttacks(int pos);
-
-  /* Non sliding pieces move generators */
-  bitset<64> generateKingMoves(Color color, int pos);
-
-  bitset<64> generateKnightMoves(Color color, int pos);
-
-  bitset<64> generatePawnMoves(Color color, int pos);
-
-  /* Sliding pieces move generators */
-  bitset<64> generateBishopMoves(Color color, int pos);
-
-  bitset<64> generateRookMoves(Color color, int pos);
-
-  bitset<64> generateQueenMoves(Color color, int pos);
-
   /* Common chess methods */
   bitset<64> attacksToSquare(int pos);
 
   bool isSquareAttacked(Color side, int pos);
 
   void generateMoves();
+
   /* Output methods */
   void printBitboard(bitset<64> bitboard);
 
