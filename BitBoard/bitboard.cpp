@@ -1,5 +1,6 @@
 #include "bitboard.h"
 #include "lookup_table.h"
+#include "move.h"
 #include <bit>
 #include <bitset>
 #include <iostream>
@@ -455,9 +456,9 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
     /* Loop over all the moves generated */
     while (moves.any()) {
       int target_square = countr_zero(moves.to_ulong());
-      cout << coordinateToSquare[source_square]
-           << coordinateToSquare[target_square] << endl;
       moves.set(target_square, false);
+      Move move = Move(source_square, target_square, 0, PAWN);
+      moveList.push_back(move);
     }
 
     bitset<64> pieces;
@@ -470,9 +471,9 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
     /* Loop over all the captures generated */
     while (captures.any()) {
       int target_square = countr_zero(captures.to_ulong());
-      cout << coordinateToSquare[source_square] << "x"
-           << coordinateToSquare[target_square] << endl;
       captures.set(target_square, false);
+      Move move = Move(source_square, target_square, 4, PAWN);
+      moveList.push_back(move);
     }
 
     /* Pop the less significant bit */
@@ -481,7 +482,8 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
 }
 
 void Bitboard::pieceMoves(bitset<64> bb, Color color,
-                          bitset<64> (Bitboard::*attackGenerator)(int)) {
+                          bitset<64> (Bitboard::*attackGenerator)(int),
+                          int piece_type) {
   /* Loop over all the pieces in the bitboard */
   while (bb.any()) {
     /* Extract the less significant bit */
@@ -501,17 +503,17 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
     /* Loop over all the moves generated */
     while (moves.any()) {
       int target_square = countr_zero(moves.to_ulong());
-      cout << coordinateToSquare[source_square]
-           << coordinateToSquare[target_square] << endl;
       moves.set(target_square, false);
+      Move move = Move(source_square, target_square, 0, piece_type);
+      moveList.push_back(move);
     }
 
     /* Loop over all the captures generated */
     while (captures.any()) {
       int target_square = countr_zero(captures.to_ulong());
-      cout << coordinateToSquare[source_square] << "x"
-           << coordinateToSquare[target_square] << endl;
       captures.set(target_square, false);
+      Move move = Move(source_square, target_square, 4, piece_type);
+      moveList.push_back(move);
     }
 
     /* Pop the less significant bit */
@@ -521,6 +523,9 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
 
 void Bitboard::generateMoves() {
 
+  /* Clear the move list */
+  moveList.clear();
+
   /* Loop over all the bitboards */
   for (int i = 11; i >= 0; i--) {
 
@@ -529,41 +534,29 @@ void Bitboard::generateMoves() {
 
     /* Generate moves for each piece */
     if (i == WHITE_KING_BB) {
-      cout << "White king moves" << endl;
-      pieceMoves(bb, WHITE, &Bitboard::generateKingAttacks);
+      pieceMoves(bb, WHITE, &Bitboard::generateKingAttacks, KING);
     } else if (i == BLACK_KING_BB) {
-      cout << "Black king moves" << endl;
-      pieceMoves(bb, BLACK, &Bitboard::generateKingAttacks);
+      pieceMoves(bb, BLACK, &Bitboard::generateKingAttacks, KING);
     } else if (i == WHITE_QUEENS_BB) {
-      cout << "White queens moves" << endl;
-      pieceMoves(bb, WHITE, &Bitboard::generateQueenAttacks);
+      pieceMoves(bb, WHITE, &Bitboard::generateQueenAttacks, QUEEN);
     } else if (i == BLACK_QUEENS_BB) {
-      cout << "Black queens moves" << endl;
-      pieceMoves(bb, BLACK, &Bitboard::generateQueenAttacks);
+      pieceMoves(bb, BLACK, &Bitboard::generateQueenAttacks, QUEEN);
     } else if (i == WHITE_ROOKS_BB) {
-      cout << "White rooks moves" << endl;
-      pieceMoves(bb, WHITE, &Bitboard::generateRookAttacks);
+      pieceMoves(bb, WHITE, &Bitboard::generateRookAttacks, ROOK);
     } else if (i == BLACK_ROOKS_BB) {
-      cout << "Black rooks moves" << endl;
-      pieceMoves(bb, BLACK, &Bitboard::generateRookAttacks);
+      pieceMoves(bb, BLACK, &Bitboard::generateRookAttacks, ROOK);
     } else if (i == WHITE_BISHOPS_BB) {
-      cout << "White bishops moves" << endl;
-      pieceMoves(bb, WHITE, &Bitboard::generateBishopAttacks);
+      pieceMoves(bb, WHITE, &Bitboard::generateBishopAttacks, BISHOP);
     } else if (i == BLACK_BISHOPS_BB) {
-      cout << "Black bishops moves" << endl;
-      pieceMoves(bb, BLACK, &Bitboard::generateBishopAttacks);
+      pieceMoves(bb, BLACK, &Bitboard::generateBishopAttacks, BISHOP);
     } else if (i == WHITE_KNIGHTS_BB) {
-      cout << "White knights moves" << endl;
-      pieceMoves(bb, WHITE, &Bitboard::generateKnightAttacks);
+      pieceMoves(bb, WHITE, &Bitboard::generateKnightAttacks, KNIGHT);
     } else if (i == BLACK_KNIGHTS_BB) {
-      cout << "Black knights moves" << endl;
-      pieceMoves(bb, BLACK, &Bitboard::generateKnightAttacks);
+      pieceMoves(bb, BLACK, &Bitboard::generateKnightAttacks, KNIGHT);
     } else if (i == WHITE_PAWNS_BB) {
-      cout << "White pawns moves" << endl;
       pieceMoves(bb, WHITE, &Bitboard::generatePawnMoves,
                  &Bitboard::generatePawnMoves);
     } else {
-      cout << "Black pawns moves" << endl;
       pieceMoves(bb, BLACK, &Bitboard::generatePawnMoves,
                  &Bitboard::generatePawnAttacks);
     }
