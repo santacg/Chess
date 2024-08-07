@@ -79,24 +79,8 @@ enum enumSquare {
 
 class Bitboard {
 private:
-  /* Lookup tables */
+  /* Lookup table */
   LookupTable *lookupTable;
-
-  /* White pieces positions */
-  bitset<64> whitePawns;
-  bitset<64> whiteRooks;
-  bitset<64> whiteKnights;
-  bitset<64> whiteBishops;
-  bitset<64> whiteQueens;
-  bitset<64> whiteKing;
-
-  /* Black pieces positions */
-  bitset<64> blackPawns;
-  bitset<64> blackRooks;
-  bitset<64> blackKnights;
-  bitset<64> blackBishops;
-  bitset<64> blackQueens;
-  bitset<64> blackKing;
 
   /* Derived positions from pieces */
   bitset<64> allWhitePieces;
@@ -177,6 +161,9 @@ private:
                   bitset<64> (Bitboard::*moveGenerator)(Color, int),
                   bitset<64> (Bitboard::*attackGenerator)(Color, int));
 
+  /* Save board state */
+  Bitboard copyBoard();
+
 public:
   /* Initialize a board with chess default starting position */
   Bitboard();
@@ -187,9 +174,6 @@ public:
            bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK,
            Color turn_color);
 
-  /* Initialize an empty board */
-  Bitboard(Color none);
-
   void setLookupTable(LookupTable *lut);
 
   /* Common chess methods */
@@ -199,10 +183,14 @@ public:
 
   void generateMoves();
 
+  void makeMove(Move move, Color color);
+
   /* Output methods */
   void printBitboard(bitset<64> bitboard);
 
   void printBoard();
+
+  void printMoveList();
 };
 
 #endif

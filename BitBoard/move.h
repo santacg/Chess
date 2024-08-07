@@ -10,6 +10,9 @@
 #define QUEEN 4
 #define KING 5
 
+#define QUIET_MOVE 0
+#define CAPTURE 4
+
 /*
  * Move encoding format
  *
@@ -43,13 +46,17 @@ public:
 
   unsigned long getTargetSquare();
 
-  unsigned long getFlags();
+  unsigned long getFlag();
 
   unsigned long getPiece();
 
   string parsePiece();
 
   string formatToAlgebraic();
+
+  bool operator==(const Move &move);
+
+  void printMove();
 };
 
 #endif

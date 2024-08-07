@@ -1,5 +1,6 @@
 #include "bitboard.h"
 #include "lookup_table.h"
+#include "move.h"
 #include <bitset>
 #include <cctype>
 #include <endian.h>
@@ -80,6 +81,9 @@ int main() {
   fen_bit_board.setLookupTable(lut);
   fen_bit_board.printBoard();
   fen_bit_board.generateMoves();
+  fen_bit_board.printMoveList();
+  fen_bit_board.makeMove(Move(60, 61, CAPTURE, KING), BLACK);
+  fen_bit_board.printBoard();
 
   free(lut);
   return 0;
