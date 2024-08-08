@@ -1,6 +1,7 @@
 #include "bitboard.h"
 #include "lookup_table.h"
 #include "move.h"
+#include "utils.h"
 #include <bitset>
 #include <cctype>
 #include <endian.h>
@@ -98,12 +99,31 @@ Bitboard parse_fen(string fen_str) {
 int main() {
   LookupTable *lut = init_lookup_table();
 
-  Bitboard fen_bit_board =
-      parse_fen("r1b1kN2/1ppp2p1/p4n1p/4p3/1b2P3/1BP5/RP3PPP/1NBQK2R b K");
+  Bitboard fen_bit_board = parse_fen(INITIAL_CHESS_POSITION);
   fen_bit_board.setLookupTable(lut);
   fen_bit_board.printBoard();
   fen_bit_board.generateMoves();
   fen_bit_board.printMoveList();
+
+  /* Few Ruy Lopez moves */
+  fen_bit_board.makeMove(Move(e2, e4, QUIET_MOVE, PAWN), WHITE);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(e7, e5, QUIET_MOVE, PAWN), BLACK);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(g1, f3, QUIET_MOVE, KNIGHT), WHITE);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(b8, c6, QUIET_MOVE, KNIGHT), BLACK);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(f1, b5, QUIET_MOVE, BISHOP), WHITE);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(a7, a6, QUIET_MOVE, PAWN), BLACK);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(b5, a4, QUIET_MOVE, BISHOP), WHITE);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(g8, f6, QUIET_MOVE, KNIGHT), BLACK);
+  fen_bit_board.printBoard();
+  fen_bit_board.makeMove(Move(e1, g1, KING_CASTLE, KING), WHITE);
+  fen_bit_board.printBoard();
 
   free(lut);
   return 0;

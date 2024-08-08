@@ -11,8 +11,8 @@ typedef struct {
   bitset<64> clear_file[FILES];
   bitset<64> mask_rank[RANKS];
   bitset<64> mask_file[FILES];
-  bitset<64> mask_diagonal[DIAGONALS];
-  bitset<64> mask_antidiagonal[DIAGONALS];
+  bitset<64> mask_diagonal[DIAGONALS + 1];
+  bitset<64> mask_antidiagonal[DIAGONALS + 1];
   bitset<64> piece_lookup[SQUARES];
   bitset<64> mask_first_rank_attacks[SQUARES * RANKS];
 } LookupTable;

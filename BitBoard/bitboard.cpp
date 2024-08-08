@@ -579,6 +579,34 @@ void Bitboard::makeMove(Move move, Color color) {
     }
   }
 
+  /* Make castle */
+  if (flag == KING_CASTLE) {
+    if (color == WHITE) {
+      /* Move white rook */
+      piecesBB[WHITE_ROOKS_BB].set(7, false);
+      piecesBB[WHITE_ROOKS_BB].set(5, true);
+    } else {
+      /* Move black rook */
+      piecesBB[BLACK_ROOKS_BB].set(63, false);
+      piecesBB[BLACK_ROOKS_BB].set(61, true);
+    }
+    castlingRights.set(0, false);
+    castlingRights.set(1, false);
+
+  } else if (flag == QUEEN_CASTLE) {
+    if (color == WHITE) {
+      /* Move white rook */
+      piecesBB[WHITE_ROOKS_BB].set(0, false);
+      piecesBB[WHITE_ROOKS_BB].set(3, true);
+    } else {
+      /* Move black rook */
+      piecesBB[BLACK_ROOKS_BB].set(56, false);
+      piecesBB[BLACK_ROOKS_BB].set(59, true);
+    }
+    castlingRights.set(2, false);
+    castlingRights.set(3, false);
+  }
+
   /* Promotions cases */
   if (flag > 5) {
     /* Delete the pawn */
@@ -707,4 +735,4 @@ void Bitboard::printBoard() {
   }
 
   cout << endl << endl;
-};
+}
