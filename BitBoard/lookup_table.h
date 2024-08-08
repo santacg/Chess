@@ -1,12 +1,8 @@
 #ifndef LOOKUP_TABLE_H
 #define LOOKUP_TABLE_H
 
+#include "utils.h"
 #include <bitset>
-
-#define RANKS 8
-#define FILES 8
-#define SQUARES 64
-#define DIAGONALS 16
 
 using namespace std;
 

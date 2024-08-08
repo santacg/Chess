@@ -11,7 +11,15 @@
 #define KING 5
 
 #define QUIET_MOVE 0
+#define DOUBLE_PAWN_PUSH 1
+#define KING_CASTLE 2
+#define QUEEN_CASTLE 3
 #define CAPTURE 4
+#define EP_CAPTURE 5
+#define KNIGHT_PROMOTION 6
+#define BISHOP_PROMOTION 7
+#define ROOK_PROMOTION 8
+#define QUEEN_PROMOTION 9
 
 /*
  * Move encoding format
@@ -30,14 +38,6 @@ private:
   bitset<6> targetSquare;
   bitset<4> flag;
   bitset<3> piece;
-
-  const char *coordinateToSquare[64] = {
-      "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "a2", "b2", "c2",
-      "d2", "e2", "f2", "g2", "h2", "a3", "b3", "c3", "d3", "e3", "f3",
-      "g3", "h3", "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4", "a5",
-      "b5", "c5", "d5", "e5", "f5", "g5", "h5", "a6", "b6", "c6", "d6",
-      "e6", "f6", "g6", "h6", "a7", "b7", "c7", "d7", "e7", "f7", "g7",
-      "h7", "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"};
 
 public:
   Move(int source_square, int target_square, int fl, int piece_t);

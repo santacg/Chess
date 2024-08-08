@@ -1,4 +1,5 @@
 #include "move.h"
+#include "utils.h"
 #include <iostream>
 
 Move::Move(int source_square, int target_square, int fl, int piece_t) {
@@ -39,17 +40,22 @@ string Move::parsePiece() {
 
 string Move::formatToAlgebraic() {
   int target_square = getTargetSquare();
-
-  int capture = 0;
-  if (getFlag() == CAPTURE)
-    capture = 1;
-
+  int flag = getFlag();
   string piece = parsePiece();
 
   string algebraic_notation;
 
+  /* Check flag for castling */
+  if (flag == KING_CASTLE) {
+    algebraic_notation.append("0-0");
+    return algebraic_notation;
+  } else if (flag == QUEEN_CASTLE) {
+    algebraic_notation.append("0-0-0");
+    return algebraic_notation;
+  }
+
   algebraic_notation.append(piece);
-  if (capture == 1)
+  if (flag == CAPTURE)
     algebraic_notation.append("x");
   algebraic_notation.append(coordinateToSquare[target_square]);
 

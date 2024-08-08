@@ -3,86 +3,18 @@
 
 #include "lookup_table.h"
 #include "move.h"
+#include "utils.h"
 #include <bitset>
 #include <vector>
 
 using namespace std;
-
-enum Color { WHITE, BLACK, NONE };
-
-enum enumSquare {
-  a1,
-  b1,
-  c1,
-  d1,
-  e1,
-  f1,
-  g1,
-  h1,
-  a2,
-  b2,
-  c2,
-  d2,
-  e2,
-  f2,
-  g2,
-  h2,
-  a3,
-  b3,
-  c3,
-  d3,
-  e3,
-  f3,
-  g3,
-  h3,
-  a4,
-  b4,
-  c4,
-  d4,
-  e4,
-  f4,
-  g4,
-  h4,
-  a5,
-  b5,
-  c5,
-  d5,
-  e5,
-  f5,
-  g5,
-  h5,
-  a6,
-  b6,
-  c6,
-  d6,
-  e6,
-  f6,
-  g6,
-  h6,
-  a7,
-  b7,
-  c7,
-  d7,
-  e7,
-  f7,
-  g7,
-  h7,
-  a8,
-  b8,
-  c8,
-  d8,
-  e8,
-  f8,
-  g8,
-  h8
-};
 
 class Bitboard {
 private:
   /* Lookup table */
   LookupTable *lookupTable;
 
-  /* Derived positions from pieces */
+  /* Derived squareitions from pieces */
   bitset<64> allWhitePieces;
   bitset<64> allBlackPieces;
   bitset<64> allPieces;
@@ -104,49 +36,37 @@ private:
 
   /* Chess game rules */
   Color turn;
-  int en_passant_sq;
-  int castle_rights[2][2];
+  int enPessantSq;
+  bitset<4> castlingRights;
 
-  /* Utils */
-  /* Chess unicode ascii pieces */
-  const char *asciiPieces[12] = {"♙", "♟", "♖", "♜", "♘", "♞",
-                                 "♗", "♝", "♕", "♛", "♔", "♚"};
-  /* Conversion from coordinate to square notation */
-  const char *coordinateToSquare[SQUARES] = {
-      "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "a2", "b2", "c2",
-      "d2", "e2", "f2", "g2", "h2", "a3", "b3", "c3", "d3", "e3", "f3",
-      "g3", "h3", "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4", "a5",
-      "b5", "c5", "d5", "e5", "f5", "g5", "h5", "a6", "b6", "c6", "d6",
-      "e6", "f6", "g6", "h6", "a7", "b7", "c7", "d7", "e7", "f7", "g7",
-      "h7", "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"};
+  /* Move generation */
 
-  /* Private move generator methods */
   /* Hyperbolee Quiessence algorithm */
-  bitset<64> generateDiagonalAttacks(int pos);
+  bitset<64> generateDiagonalAttacks(int square);
 
-  bitset<64> generateAntiDiagonalAttacks(int pos);
+  bitset<64> generateAntiDiagonalAttacks(int square);
 
-  bitset<64> generateFileAttacks(int pos);
+  bitset<64> generateFileAttacks(int square);
 
   /* First rank attacks algorithm */
-  bitset<64> generateRankAttacks(int pos);
+  bitset<64> generateRankAttacks(int square);
 
   /* Non sliding pieces attack generators */
-  bitset<64> generateKingAttacks(int pos);
+  bitset<64> generateKingAttacks(int square);
 
-  bitset<64> generateKnightAttacks(int pos);
+  bitset<64> generateKnightAttacks(int square);
 
-  bitset<64> generatePawnAttacks(Color color, int pos);
+  bitset<64> generatePawnAttacks(Color color, int square);
 
   /* Sliding pieces attack generators */
-  bitset<64> generateBishopAttacks(int pos);
+  bitset<64> generateBishopAttacks(int square);
 
-  bitset<64> generateRookAttacks(int pos);
+  bitset<64> generateRookAttacks(int square);
 
-  bitset<64> generateQueenAttacks(int pos);
+  bitset<64> generateQueenAttacks(int square);
 
   /* Pawn move generator */
-  bitset<64> generatePawnMoves(Color color, int pos);
+  bitset<64> generatePawnMoves(Color color, int square);
 
   /* Attacking bitboards methods */
   void nonSlidingAttacks();
@@ -161,25 +81,28 @@ private:
                   bitset<64> (Bitboard::*moveGenerator)(Color, int),
                   bitset<64> (Bitboard::*attackGenerator)(Color, int));
 
+  /* Castling generation */
+  void generateCastleMoves();
+
   /* Save board state */
   Bitboard copyBoard();
 
 public:
-  /* Initialize a board with chess default starting position */
+  /* Initialize a board with chess default starting squareition */
   Bitboard();
 
-  /* Initialize a custom position */
+  /* Initialize a custom squareition */
   Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
            bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
            bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK,
-           Color turn_color);
+           bitset<4> cR, Color turn_color);
 
   void setLookupTable(LookupTable *lut);
 
   /* Common chess methods */
-  bitset<64> attacksToSquare(int pos);
+  bitset<64> attacksToSquare(int square);
 
-  bool isSquareAttacked(Color side, int pos);
+  bool isSquareAttacked(Color side, int square);
 
   void generateMoves();
 
