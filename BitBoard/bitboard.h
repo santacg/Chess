@@ -106,7 +106,7 @@ public:
 
   void generateMoves();
 
-  void makeMove(Move move);
+  bool makeMove(Move move);
 
   /* Output methods */
   void printBitboard(bitset<64> bitboard);

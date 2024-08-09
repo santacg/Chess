@@ -574,7 +574,10 @@ Bitboard Bitboard::copyBoard() {
   return bitboard_cpy;
 }
 
-void Bitboard::makeMove(Move move) {
+bool Bitboard::makeMove(Move move) {
+  /* Save copy of the full bitboard */
+  Bitboard bitboard_cpy = copyBoard();
+
   /* Reset en passant square */
   enPassantSq = no_square;
 
@@ -692,6 +695,20 @@ void Bitboard::makeMove(Move move) {
 
   /* Change turn */
   (turn == WHITE) ? turn = BLACK : turn = WHITE;
+
+  /* Check if the move is not legal (if the king is left on check after the
+   * move) */
+
+  /* Get a copy of the king bitboard */
+  bitset<64> king = piecesBB[(color == WHITE) ? WHITE_KING_BB : BLACK_KING_BB];
+  int king_square = countr_zero(king.to_ulong());
+
+  if (isSquareAttacked((color == WHITE) ? BLACK : WHITE, king_square) == true) {
+    *this = bitboard_cpy;
+    return false;
+  }
+
+  return true;
 }
 
 void Bitboard::updateDerivedBitboards() {

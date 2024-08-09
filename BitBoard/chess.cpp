@@ -117,6 +117,23 @@ int main() {
   fen_bit_board.generateMoves();
   fen_bit_board.printMoveList();
 
+  /* Check test */
+  /*fen_bit_board.makeMove(Move(e2, e4, DOUBLE_PAWN_PUSH, PAWN, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.makeMove(Move(e7, e5, DOUBLE_PAWN_PUSH, PAWN, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.makeMove(Move(e1, e2, QUIET_MOVE, KING, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.makeMove(Move(d8, h4, QUIET_MOVE, QUEEN, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.makeMove(Move(a2, a3, QUIET_MOVE, PAWN, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.makeMove(Move(h4, e4, CAPTURE, QUEEN, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.makeMove(Move(a3, a4, QUIET_MOVE, PAWN, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /**/
+
   /* Few Ruy Lopez moves */
   fen_bit_board.makeMove(Move(e2, e4, DOUBLE_PAWN_PUSH, PAWN, WHITE));
   fen_bit_board.printBoard();
