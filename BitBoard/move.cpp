@@ -43,19 +43,41 @@ string Move::parsePiece() {
 
 string Move::formatFlag() {
   switch (flag.to_ulong()) {
-  case 0:
+  case QUIET_MOVE:
     return "move";
-  case 1:
-    return "move";
-  case 2:
+  case DOUBLE_PAWN_PUSH:
+    return "double pawn push";
+  case KING_CASTLE:
     return "king side castling";
-  case 3:
+  case QUEEN_CASTLE:
     return "queen side castling";
-  case 4:
+  case CAPTURE:
     return "capture";
+  case EP_CAPTURE:
+    return "en passant capture";
+  case KNIGHT_PROMOTION:
+    return "knight promotion";
+  case BISHOP_PROMOTION:
+    return "bishop promotion";
+  case ROOK_PROMOTION:
+    return "rook promotion";
+  case QUEEN_PROMOTION:
+    return "queen promotion";
+  case KNIGHT_PROMOTION_CAPTURE:
+    return "knight promotion capture";
+  case BISHOP_PROMOTION_CAPTURE:
+    return "bishop promotion capture";
+  case ROOK_PROMOTION_CAPTURE:
+    return "rook promotion capture";
+  case QUEEN_PROMOTION_CAPTURE:
+    return "queen promotion capture";
+  case PROMOTION:
+    return "promotion";
+  case PROMOTION_CAPTURE:
+    return "promotion capture";
+  default:
+    return "unknown move";
   }
-
-  return " ";
 }
 
 string Move::formatToAlgebraic() {

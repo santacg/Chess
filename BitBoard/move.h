@@ -25,6 +25,7 @@
 #define ROOK_PROMOTION_CAPTURE 12
 #define QUEEN_PROMOTION_CAPTURE 13
 #define PROMOTION 14
+#define PROMOTION_CAPTURE 15
 
 /*
  * Move encoding format

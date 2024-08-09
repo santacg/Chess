@@ -135,10 +135,6 @@ bitset<64> Bitboard::generatePawnAttacks(Color color, int square) {
     attacks = a_file_clipping >> 9 | h_file_clipping >> 7;
   }
 
-  /* Generate en passant attack */
-  if (enPassantSq != no_square) {
-  }
-
   return attacks;
 }
 
@@ -457,18 +453,45 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
     bitset<64> pieces;
     (color == WHITE) ? pieces = allBlackPieces : pieces = allWhitePieces;
 
-    /* Generate captures */
-    bitset<64> captures =
-        (this->*attack_generator)(color, source_square) & pieces;
+    /* Generate attacks and captures */
+    bitset<64> attacks = (this->*attack_generator)(color, source_square);
+    bitset<64> captures = attacks & pieces;
 
     /* Loop over all the captures generated */
+    int flag = CAPTURE;
     while (captures.any()) {
       int target_square = countr_zero(captures.to_ulong());
+
+      /* Check for promotion captures */
+      int promotion_rank = (color == WHITE) ? 7 : 0;
+      if ((lookupTable->piece_lookup[target_square] &
+           lookupTable->mask_rank[promotion_rank])
+              .any() == true) {
+        flag = PROMOTION_CAPTURE;
+      }
+
       captures.set(target_square, false);
-      moveList.push_back(
-          Move(source_square, target_square, CAPTURE, PAWN, color));
+
+      /* Generate all possible promotion captures */
+      if (flag == PROMOTION_CAPTURE) {
+        for (int i = KNIGHT_PROMOTION_CAPTURE; i <= QUEEN_PROMOTION_CAPTURE;
+             i++) {
+          moveList.push_back(
+              Move(source_square, target_square, i, PAWN, color));
+        }
+      } else {
+        moveList.push_back(
+            Move(source_square, target_square, CAPTURE, PAWN, color));
+      }
     }
 
+    /* Generate en passant capture */
+    if (enPassantSq != no_square) {
+      if ((attacks & lookupTable->piece_lookup[enPassantSq]).any() == true) {
+        moveList.push_back(
+            Move(source_square, enPassantSq, EP_CAPTURE, PAWN, color));
+      }
+    }
     /* Pop the less significant bit */
     bb.set(source_square, false);
   }
@@ -548,7 +571,7 @@ void Bitboard::generateMoves() {
       pieceMoves(bb, BLACK, &Bitboard::generateKnightAttacks, KNIGHT);
     } else if (i == WHITE_PAWNS_BB) {
       pieceMoves(bb, WHITE, &Bitboard::generatePawnMoves,
-                 &Bitboard::generatePawnMoves);
+                 &Bitboard::generatePawnAttacks);
     } else {
       pieceMoves(bb, BLACK, &Bitboard::generatePawnMoves,
                  &Bitboard::generatePawnAttacks);
@@ -645,8 +668,16 @@ void Bitboard::makeMove(Move move) {
   }
 
   /* Handle double pawn push */
+  if (flag == DOUBLE_PAWN_PUSH) {
+    enPassantSq = target_square + ((color == WHITE) ? -8 : 8);
+  }
 
   /* Handle en passant */
+  if (flag == EP_CAPTURE) {
+    int en_passant_capture_sq = target_square + ((color == WHITE) ? -8 : 8);
+    piecesBB[(color == WHITE) ? BLACK_PAWNS_BB : WHITE_PAWNS_BB].set(
+        en_passant_capture_sq, false);
+  }
 
   /* Update castling rights */
   int king_side_index = (color == WHITE) ? 0 : 2;
@@ -774,6 +805,12 @@ void Bitboard::printBoard() {
   if (castlingRights.test(3) == true) {
     cout << "q";
   }
+  if (castlingRights.any() == false) {
+    cout << "-";
+  }
+  cout << endl << endl;
 
+  cout << "En passant square: "
+       << ((enPassantSq == no_square) ? "-" : coordinateToSquare[enPassantSq]);
   cout << endl << endl;
 }
