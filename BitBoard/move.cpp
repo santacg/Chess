@@ -2,11 +2,12 @@
 #include "utils.h"
 #include <iostream>
 
-Move::Move(int source_square, int target_square, int fl, int piece_t) {
+Move::Move(int source_square, int target_square, int fl, int piece_t, int clr) {
   sourceSquare = source_square;
   targetSquare = target_square;
   flag = fl;
   piece = piece_t;
+  color = clr;
 }
 
 unsigned long Move::getSourceSquare() { return sourceSquare.to_ulong(); }
@@ -16,6 +17,8 @@ unsigned long Move::getTargetSquare() { return targetSquare.to_ulong(); }
 unsigned long Move::getFlag() { return flag.to_ulong(); }
 
 unsigned long Move::getPiece() { return piece.to_ulong(); }
+
+unsigned long Move::getColor() { return color.to_ulong(); }
 
 string Move::parsePiece() {
   int piece = getPiece();
@@ -36,6 +39,23 @@ string Move::parsePiece() {
   }
 
   return "";
+}
+
+string Move::formatFlag() {
+  switch (flag.to_ulong()) {
+  case 0:
+    return "move";
+  case 1:
+    return "move";
+  case 2:
+    return "king side castling";
+  case 3:
+    return "queen side castling";
+  case 4:
+    return "capture";
+  }
+
+  return " ";
 }
 
 string Move::formatToAlgebraic() {
@@ -76,6 +96,9 @@ bool Move::operator==(const Move &move) {
   if (piece.to_ulong() != move.piece.to_ulong())
     return false;
 
+  if (color.to_ulong() != move.color.to_ulong())
+    return false;
+
   return true;
 }
 
@@ -85,9 +108,9 @@ void Move::printMove() {
   cout << "target square: ";
   cout << coordinateToSquare[targetSquare.to_ulong()] << " ";
   cout << "flag: ";
-  cout << flag.to_ulong() << " ";
-  cout << "piece: ";
-  string piece = parsePiece();
-
-  (piece == "") ? cout << "P" << endl : cout << piece << endl;
+  cout << formatFlag() << " ";
+  int piece_t = (color.to_ulong() == WHITE) ? piece.to_ulong() * 2
+                                            : piece.to_ulong() * 2 + 1;
+  cout << "piece: " << asciiPieces[piece_t];
+  cout << endl;
 }

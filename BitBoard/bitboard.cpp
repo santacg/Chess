@@ -46,21 +46,11 @@ Bitboard::Bitboard() {
   piecesBB[WHITE_KING_BB] = WHITE_KING_INIT;
   piecesBB[BLACK_KING_BB] = BLACK_KING_INIT;
 
-  allWhitePieces = (piecesBB[WHITE_KING_BB] | piecesBB[WHITE_QUEENS_BB] |
-                    piecesBB[WHITE_BISHOPS_BB] | piecesBB[WHITE_KNIGHTS_BB] |
-                    piecesBB[WHITE_ROOKS_BB] | piecesBB[WHITE_PAWNS_BB]);
-
-  allBlackPieces = (piecesBB[BLACK_KING_BB] | piecesBB[BLACK_QUEENS_BB] |
-                    piecesBB[BLACK_BISHOPS_BB] | piecesBB[BLACK_KNIGHTS_BB] |
-                    piecesBB[BLACK_ROOKS_BB] | piecesBB[BLACK_PAWNS_BB]);
-
-  allPieces = (allWhitePieces | allBlackPieces);
-
-  emptySquares = ~allPieces;
-
-  castlingRights = 1111;
+  updateDerivedBitboards();
 
   turn = WHITE;
+  castlingRights = 1111;
+  enPassantSq = no_square;
 }
 
 Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
@@ -80,22 +70,11 @@ Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
   piecesBB[WHITE_KING_BB] = wK;
   piecesBB[BLACK_KING_BB] = bK;
 
-  allWhitePieces = (piecesBB[WHITE_KING_BB] | piecesBB[WHITE_QUEENS_BB] |
-                    piecesBB[WHITE_BISHOPS_BB] | piecesBB[WHITE_KNIGHTS_BB] |
-                    piecesBB[WHITE_ROOKS_BB] | piecesBB[WHITE_PAWNS_BB]);
-
-  allBlackPieces = (piecesBB[BLACK_KING_BB] | piecesBB[BLACK_QUEENS_BB] |
-                    piecesBB[BLACK_BISHOPS_BB] | piecesBB[BLACK_KNIGHTS_BB] |
-                    piecesBB[BLACK_ROOKS_BB] | piecesBB[BLACK_PAWNS_BB]);
-  allPieces = (allWhitePieces | allBlackPieces);
-
-  emptySquares = ~allPieces;
+  updateDerivedBitboards();
 
   turn = side;
-
   castlingRights = cR;
-
-  enPessantSq = no_square;
+  enPassantSq = no_square;
 }
 
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
@@ -154,6 +133,10 @@ bitset<64> Bitboard::generatePawnAttacks(Color color, int square) {
     attacks = a_file_clipping << 7 | h_file_clipping << 9;
   } else {
     attacks = a_file_clipping >> 9 | h_file_clipping >> 7;
+  }
+
+  /* Generate en passant attack */
+  if (enPassantSq != no_square) {
   }
 
   return attacks;
@@ -387,7 +370,7 @@ void Bitboard::generateCastleMoves() {
     if ((emptySquares.test(5) == true && emptySquares.test(6) == true) &&
         (isSquareAttacked(BLACK, 5) == false &&
          isSquareAttacked(BLACK, 6) == false)) {
-      moveList.push_back(Move(4, 6, KING_CASTLE, KING));
+      moveList.push_back(Move(4, 6, KING_CASTLE, KING, WHITE));
     }
   }
 
@@ -398,7 +381,7 @@ void Bitboard::generateCastleMoves() {
         (isSquareAttacked(BLACK, 3) == false &&
          isSquareAttacked(BLACK, 2) == false)) {
 
-      moveList.push_back(Move(4, 2, QUEEN_CASTLE, KING));
+      moveList.push_back(Move(4, 2, QUEEN_CASTLE, KING, WHITE));
     }
   }
 
@@ -407,7 +390,7 @@ void Bitboard::generateCastleMoves() {
     if ((emptySquares.test(61) == true && emptySquares.test(62) == true) &&
         (isSquareAttacked(WHITE, 61) == false &&
          isSquareAttacked(WHITE, 62) == false)) {
-      moveList.push_back(Move(60, 62, KING_CASTLE, KING));
+      moveList.push_back(Move(60, 62, KING_CASTLE, KING, BLACK));
     }
   }
 
@@ -417,7 +400,7 @@ void Bitboard::generateCastleMoves() {
          emptySquares.test(57) == true) &&
         (isSquareAttacked(WHITE, 59) == false &&
          isSquareAttacked(WHITE, 58) == false)) {
-      moveList.push_back(Move(60, 58, QUEEN_CASTLE, KING));
+      moveList.push_back(Move(60, 58, QUEEN_CASTLE, KING, BLACK));
     }
   }
 }
@@ -437,8 +420,38 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
     /* Loop over all the moves generated */
     while (moves.any()) {
       int target_square = countr_zero(moves.to_ulong());
+
+      int flag;
+
+      /* Define variables for rank changes based on the color */
+      int rank_change = (color == WHITE) ? 16 : -16;
+      int promotion_rank = (color == WHITE) ? 7 : 0;
+
+      /* Check if it's a double pawn push move */
+      if (target_square == source_square + rank_change) {
+        flag = DOUBLE_PAWN_PUSH;
+      }
+      /* Check if it's a promotion */
+      else if ((lookupTable->piece_lookup[target_square] &
+                lookupTable->mask_rank[promotion_rank])
+                   .any()) {
+        flag = PROMOTION;
+      } else {
+        flag = QUIET_MOVE;
+      }
+
       moves.set(target_square, false);
-      moveList.push_back(Move(source_square, target_square, QUIET_MOVE, PAWN));
+
+      if (flag == PROMOTION) {
+        /* Generate all possible types of promotion */
+        for (int i = KNIGHT_PROMOTION; i <= QUEEN_PROMOTION; i++) {
+          moveList.push_back(
+              Move(source_square, target_square, i, PAWN, color));
+        }
+      } else {
+        moveList.push_back(
+            Move(source_square, target_square, flag, PAWN, color));
+      }
     }
 
     bitset<64> pieces;
@@ -452,7 +465,8 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
     while (captures.any()) {
       int target_square = countr_zero(captures.to_ulong());
       captures.set(target_square, false);
-      moveList.push_back(Move(source_square, target_square, CAPTURE, PAWN));
+      moveList.push_back(
+          Move(source_square, target_square, CAPTURE, PAWN, color));
     }
 
     /* Pop the less significant bit */
@@ -484,7 +498,7 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
       int target_square = countr_zero(moves.to_ulong());
       moves.set(target_square, false);
       moveList.push_back(
-          Move(source_square, target_square, QUIET_MOVE, piece_type));
+          Move(source_square, target_square, QUIET_MOVE, piece_type, color));
     }
 
     /* Loop over all the captures generated */
@@ -492,7 +506,7 @@ void Bitboard::pieceMoves(bitset<64> bb, Color color,
       int target_square = countr_zero(captures.to_ulong());
       captures.set(target_square, false);
       moveList.push_back(
-          Move(source_square, target_square, CAPTURE, piece_type));
+          Move(source_square, target_square, CAPTURE, piece_type, color));
     }
 
     /* Pop the less significant bit */
@@ -549,29 +563,28 @@ Bitboard Bitboard::copyBoard() {
   return bitboard_cpy;
 }
 
-void Bitboard::makeMove(Move move, Color color) {
+void Bitboard::makeMove(Move move) {
 
   /* Get the move type */
   int flag = move.getFlag();
   int source_square = move.getSourceSquare();
   int target_square = move.getTargetSquare();
   int piece = move.getPiece();
-  int pieceBB;
+  int color = move.getColor();
 
   /* Get the correct piece bitboard taking into account the color */
-  (color == WHITE) ? pieceBB = piece * 2 : pieceBB = piece * 2 + 1;
+  int pieceBB = piece * 2 + (color == BLACK);
 
   /* Remove piece from source square and add it to target square */
   piecesBB[pieceBB].set(source_square, false);
   piecesBB[pieceBB].set(target_square, true);
 
-  /* Make capture */
-  if (flag == CAPTURE) {
-    int i;
-    (color == WHITE) ? i = 1 : i = 0;
+  /* Handle capture or promotion capture*/
+  if (flag == CAPTURE || flag >= KNIGHT_PROMOTION_CAPTURE) {
+    int i = (color == WHITE) ? 1 : 0;
 
     /* Skip same color piece bitboards */
-    for (; i < 6; i = i + 2) {
+    for (; i < 6; i += 2) {
       if (piecesBB[i].test(target_square) == true) {
         piecesBB[i].set(target_square, false);
         break;
@@ -579,7 +592,7 @@ void Bitboard::makeMove(Move move, Color color) {
     }
   }
 
-  /* Make castle */
+  /* Handle castling */
   if (flag == KING_CASTLE) {
     if (color == WHITE) {
       /* Move white rook */
@@ -590,9 +603,6 @@ void Bitboard::makeMove(Move move, Color color) {
       piecesBB[BLACK_ROOKS_BB].set(63, false);
       piecesBB[BLACK_ROOKS_BB].set(61, true);
     }
-    castlingRights.set(0, false);
-    castlingRights.set(1, false);
-
   } else if (flag == QUEEN_CASTLE) {
     if (color == WHITE) {
       /* Move white rook */
@@ -603,33 +613,67 @@ void Bitboard::makeMove(Move move, Color color) {
       piecesBB[BLACK_ROOKS_BB].set(56, false);
       piecesBB[BLACK_ROOKS_BB].set(59, true);
     }
-    castlingRights.set(2, false);
-    castlingRights.set(3, false);
   }
 
-  /* Promotions cases */
-  if (flag > 5) {
+  /* Handle promotion */
+  if (flag >= KNIGHT_PROMOTION) {
     /* Delete the pawn */
     piecesBB[pieceBB].set(target_square, false);
 
-    /* Choose the promoted pieces bitboard */
-    if (flag == QUEEN_PROMOTION) {
-      (color == WHITE) ? pieceBB = WHITE_QUEENS_BB : pieceBB = BLACK_QUEENS_BB;
-    } else if (flag == ROOK_PROMOTION) {
-      (color == WHITE) ? pieceBB = WHITE_ROOKS_BB : pieceBB = BLACK_ROOKS_BB;
-    } else if (flag == KNIGHT_PROMOTION) {
-      (color == WHITE) ? pieceBB = WHITE_KNIGHTS_BB
-                       : pieceBB = BLACK_KNIGHTS_BB;
-    } else {
-      (color == WHITE) ? pieceBB = WHITE_BISHOPS_BB
-                       : pieceBB = BLACK_BISHOPS_BB;
+    /* Choose the promoted piece bitboard */
+    switch (flag) {
+    case QUEEN_PROMOTION:
+    case QUEEN_PROMOTION_CAPTURE:
+      pieceBB = (color == WHITE) ? WHITE_QUEENS_BB : BLACK_QUEENS_BB;
+      break;
+    case ROOK_PROMOTION:
+    case ROOK_PROMOTION_CAPTURE:
+      pieceBB = (color == WHITE) ? WHITE_ROOKS_BB : BLACK_ROOKS_BB;
+      break;
+    case KNIGHT_PROMOTION:
+    case KNIGHT_PROMOTION_CAPTURE:
+      pieceBB = (color == WHITE) ? WHITE_KNIGHTS_BB : BLACK_KNIGHTS_BB;
+      break;
+    case BISHOP_PROMOTION:
+    case BISHOP_PROMOTION_CAPTURE:
+      pieceBB = (color == WHITE) ? WHITE_BISHOPS_BB : BLACK_BISHOPS_BB;
+      break;
     }
 
     /* Set promoted piece on piece bitboard */
     piecesBB[pieceBB].set(target_square, true);
   }
 
+  /* Handle double pawn push */
+
+  /* Handle en passant */
+
+  /* Update castling rights */
+  int king_side_index = (color == WHITE) ? 0 : 2;
+  int queen_side_index = king_side_index + 1;
+
+  if (piece == KING) {
+    /* Disable all castling rights */
+    castlingRights.set(king_side_index, false);
+    castlingRights.set(queen_side_index, false);
+  } else if (piece == ROOK) {
+    if (source_square == ((color == WHITE) ? 0 : 56)) {
+      /* Disable queen side castling */
+      castlingRights.set(queen_side_index, false);
+    } else if (source_square == ((color == WHITE) ? 7 : 63)) {
+      /* Disable king side castling */
+      castlingRights.set(king_side_index, false);
+    }
+  }
+
   /* Update all derived bitboards */
+  updateDerivedBitboards();
+
+  /* Change turn */
+  (turn == WHITE) ? turn = BLACK : turn = WHITE;
+}
+
+void Bitboard::updateDerivedBitboards() {
   allWhitePieces = (piecesBB[WHITE_KING_BB] | piecesBB[WHITE_QUEENS_BB] |
                     piecesBB[WHITE_BISHOPS_BB] | piecesBB[WHITE_KNIGHTS_BB] |
                     piecesBB[WHITE_ROOKS_BB] | piecesBB[WHITE_PAWNS_BB]);
@@ -641,9 +685,6 @@ void Bitboard::makeMove(Move move, Color color) {
   allPieces = (allWhitePieces | allBlackPieces);
 
   emptySquares = ~allPieces;
-
-  /* Change turn */
-  (turn == WHITE) ? turn = BLACK : turn = WHITE;
 }
 
 void Bitboard::printMoveList() {

@@ -106,23 +106,25 @@ int main() {
   fen_bit_board.printMoveList();
 
   /* Few Ruy Lopez moves */
-  fen_bit_board.makeMove(Move(e2, e4, QUIET_MOVE, PAWN), WHITE);
+  fen_bit_board.makeMove(Move(e2, e4, QUIET_MOVE, PAWN, WHITE));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(e7, e5, QUIET_MOVE, PAWN), BLACK);
+  fen_bit_board.makeMove(Move(e7, e5, QUIET_MOVE, PAWN, BLACK));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(g1, f3, QUIET_MOVE, KNIGHT), WHITE);
+  fen_bit_board.makeMove(Move(g1, f3, QUIET_MOVE, KNIGHT, WHITE));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(b8, c6, QUIET_MOVE, KNIGHT), BLACK);
+  fen_bit_board.makeMove(Move(b8, c6, QUIET_MOVE, KNIGHT, BLACK));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(f1, b5, QUIET_MOVE, BISHOP), WHITE);
+  fen_bit_board.makeMove(Move(f1, b5, QUIET_MOVE, BISHOP, WHITE));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(a7, a6, QUIET_MOVE, PAWN), BLACK);
+  fen_bit_board.makeMove(Move(a7, a6, QUIET_MOVE, PAWN, BLACK));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(b5, a4, QUIET_MOVE, BISHOP), WHITE);
+  fen_bit_board.makeMove(Move(b5, a4, QUIET_MOVE, BISHOP, WHITE));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(g8, f6, QUIET_MOVE, KNIGHT), BLACK);
+  fen_bit_board.makeMove(Move(g8, f6, QUIET_MOVE, KNIGHT, BLACK));
   fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(e1, g1, KING_CASTLE, KING), WHITE);
+  fen_bit_board.generateMoves();
+  fen_bit_board.printMoveList();
+  fen_bit_board.makeMove(Move(e1, g1, KING_CASTLE, KING, WHITE));
   fen_bit_board.printBoard();
 
   free(lut);

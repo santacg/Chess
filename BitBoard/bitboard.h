@@ -36,7 +36,7 @@ private:
 
   /* Chess game rules */
   Color turn;
-  int enPessantSq;
+  int enPassantSq;
   bitset<4> castlingRights;
 
   /* Move generation */
@@ -84,14 +84,22 @@ private:
   /* Castling generation */
   void generateCastleMoves();
 
+  /* Common chess methods */
+  bitset<64> attacksToSquare(int square);
+
+  bool isSquareAttacked(Color side, int square);
+
   /* Save board state */
   Bitboard copyBoard();
 
+  /* Updating methods */
+  void updateDerivedBitboards();
+
 public:
-  /* Initialize a board with chess default starting squareition */
+  /* Initialize a board with chess default starting position */
   Bitboard();
 
-  /* Initialize a custom squareition */
+  /* Initialize a custom position */
   Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
            bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
            bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK,
@@ -99,14 +107,9 @@ public:
 
   void setLookupTable(LookupTable *lut);
 
-  /* Common chess methods */
-  bitset<64> attacksToSquare(int square);
-
-  bool isSquareAttacked(Color side, int square);
-
   void generateMoves();
 
-  void makeMove(Move move, Color color);
+  void makeMove(Move move);
 
   /* Output methods */
   void printBitboard(bitset<64> bitboard);

@@ -20,14 +20,20 @@
 #define BISHOP_PROMOTION 7
 #define ROOK_PROMOTION 8
 #define QUEEN_PROMOTION 9
+#define KNIGHT_PROMOTION_CAPTURE 10
+#define BISHOP_PROMOTION_CAPTURE 11
+#define ROOK_PROMOTION_CAPTURE 12
+#define QUEEN_PROMOTION_CAPTURE 13
+#define PROMOTION 14
 
 /*
  * Move encoding format
  *
- * 000 0000 0000 0011 1111 source square
- * 000 0000 1111 1100 0000 target square
- * 000 1111 0000 0000 0000 flags
- * 111 0000 0000 0000 0000 pieces
+ * 0000 0000 0000 0011 1111 source square
+ * 0000 0000 1111 1100 0000 target square
+ * 0000 1111 0000 0000 0000 flags
+ * 0111 0000 0000 0000 0000 pieces
+ * 1000 0000 0000 0000 0000 color
  */
 
 using namespace std;
@@ -38,9 +44,10 @@ private:
   bitset<6> targetSquare;
   bitset<4> flag;
   bitset<3> piece;
+  bitset<1> color;
 
 public:
-  Move(int source_square, int target_square, int fl, int piece_t);
+  Move(int source_square, int target_square, int fl, int piece_t, int clr);
 
   unsigned long getSourceSquare();
 
@@ -50,7 +57,11 @@ public:
 
   unsigned long getPiece();
 
+  unsigned long getColor();
+
   string parsePiece();
+
+  string formatFlag();
 
   string formatToAlgebraic();
 
