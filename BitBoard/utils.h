@@ -1,6 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <map>
+#include <string>
+
 #define RANKS 8
 #define FILES 8
 #define SQUARES 64
@@ -77,6 +80,8 @@ enum enumSquare {
 enum Color { WHITE, BLACK, NONE };
 
 extern const char *coordinateToSquare[64];
+
+extern const std::map<std::string, int> squareToCoordinate;
 
 extern const char *asciiPieces[12];
 

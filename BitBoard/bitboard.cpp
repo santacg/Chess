@@ -53,28 +53,16 @@ Bitboard::Bitboard() {
   enPassantSq = no_square;
 }
 
-Bitboard::Bitboard(bitset<64> wP, bitset<64> bP, bitset<64> wR, bitset<64> bR,
-                   bitset<64> wN, bitset<64> bN, bitset<64> wB, bitset<64> bB,
-                   bitset<64> wQ, bitset<64> bQ, bitset<64> wK, bitset<64> bK,
-                   bitset<4> cR, Color side) {
-  piecesBB[WHITE_PAWNS_BB] = wP;
-  piecesBB[BLACK_PAWNS_BB] = bP;
-  piecesBB[WHITE_ROOKS_BB] = wR;
-  piecesBB[BLACK_ROOKS_BB] = bR;
-  piecesBB[WHITE_KNIGHTS_BB] = wN;
-  piecesBB[BLACK_KNIGHTS_BB] = bN;
-  piecesBB[WHITE_BISHOPS_BB] = wB;
-  piecesBB[BLACK_BISHOPS_BB] = bB;
-  piecesBB[WHITE_QUEENS_BB] = wQ;
-  piecesBB[BLACK_QUEENS_BB] = bQ;
-  piecesBB[WHITE_KING_BB] = wK;
-  piecesBB[BLACK_KING_BB] = bK;
+Bitboard::Bitboard(bitset<64> pieces[12], bitset<4> cR, int epSq, Color side) {
+  for (int i = 0; i < 12; i++) {
+    piecesBB[i] = pieces[i];
+  }
 
   updateDerivedBitboards();
 
   turn = side;
   castlingRights = cR;
-  enPassantSq = no_square;
+  enPassantSq = epSq;
 }
 
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
