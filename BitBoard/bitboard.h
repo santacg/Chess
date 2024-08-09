@@ -82,15 +82,14 @@ private:
                   bitset<64> (Bitboard::*attackGenerator)(Color, int));
 
   /* Castling generation */
-  void generateCastleMoves();
+  void generateCastleMoves(Color side);
 
   /* Common chess methods */
   bitset<64> attacksToSquare(int square);
 
   bool isSquareAttacked(Color side, int square);
 
-  /* Save board state */
-  Bitboard copyBoard();
+  bool isCheck(Color side, int king_square);
 
   /* Updating methods */
   void updateDerivedBitboards();
@@ -102,8 +101,12 @@ public:
   /* Initialize a custom position */
   Bitboard(bitset<64> pieces[12], bitset<4> cR, int epSq, Color turn_color);
 
+  /* Getters and setters */
+  vector<Move> getMoveList();
+
   void setLookupTable(LookupTable *lut);
 
+  /* Move methods */
   void generateMoves();
 
   bool makeMove(Move move);
@@ -114,6 +117,9 @@ public:
   void printBoard();
 
   void printMoveList();
+
+  /* Save board state */
+  Bitboard copyBoard();
 };
 
 #endif

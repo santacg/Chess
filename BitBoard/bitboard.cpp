@@ -49,7 +49,8 @@ Bitboard::Bitboard() {
   updateDerivedBitboards();
 
   turn = WHITE;
-  castlingRights = 1111;
+  castlingRights.reset();
+  castlingRights.flip();
   enPassantSq = no_square;
 }
 
@@ -66,6 +67,8 @@ Bitboard::Bitboard(bitset<64> pieces[12], bitset<4> cR, int epSq, Color side) {
 }
 
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
+
+vector<Move> Bitboard::getMoveList() { return moveList; }
 
 bitset<64> Bitboard::generateKingAttacks(int square) {
   bitset<64> king = lookupTable->piece_lookup[square];
@@ -346,45 +349,47 @@ bool Bitboard::isSquareAttacked(Color side, int square) {
   return false;
 }
 
-void Bitboard::generateCastleMoves() {
-  /* White side king castling */
-  if (castlingRights.test(0) == true) {
-    /* Check if squares between king and rook are empty and if any of the end or
-     * passing squares are attacked by an opponents piece */
-    if ((emptySquares.test(5) == true && emptySquares.test(6) == true) &&
-        (isSquareAttacked(BLACK, 5) == false &&
-         isSquareAttacked(BLACK, 6) == false)) {
-      moveList.push_back(Move(4, 6, KING_CASTLE, KING, WHITE));
+void Bitboard::generateCastleMoves(Color side) {
+
+  if (side == WHITE) {
+    /* White side king castling */
+    if (castlingRights.test(0) == true) {
+      /* Check if squares between king and rook are empty and if any of the end
+       * or passing squares are attacked by an opponents piece */
+      if ((emptySquares.test(5) == true && emptySquares.test(6) == true) &&
+          (isSquareAttacked(BLACK, 5) == false &&
+           isSquareAttacked(BLACK, 6) == false)) {
+        moveList.push_back(Move(4, 6, KING_CASTLE, KING, WHITE));
+      }
     }
-  }
 
-  /* White side queen castling */
-  if (castlingRights.test(1) == true) {
-    if ((emptySquares.test(3) == true && emptySquares.test(2) == true &&
-         emptySquares.test(1) == true) &&
-        (isSquareAttacked(BLACK, 3) == false &&
-         isSquareAttacked(BLACK, 2) == false)) {
+    /* White side queen castling */
+    if (castlingRights.test(1) == true) {
+      if ((emptySquares.test(3) == true && emptySquares.test(2) == true &&
+           emptySquares.test(1) == true) &&
+          (isSquareAttacked(BLACK, 3) == false &&
+           isSquareAttacked(BLACK, 2) == false)) {
 
-      moveList.push_back(Move(4, 2, QUEEN_CASTLE, KING, WHITE));
+        moveList.push_back(Move(4, 2, QUEEN_CASTLE, KING, WHITE));
+      }
     }
-  }
-
-  /* Black side king castling */
-  if (castlingRights.test(2) == true) {
-    if ((emptySquares.test(61) == true && emptySquares.test(62) == true) &&
-        (isSquareAttacked(WHITE, 61) == false &&
-         isSquareAttacked(WHITE, 62) == false)) {
-      moveList.push_back(Move(60, 62, KING_CASTLE, KING, BLACK));
+  } else {
+    /* Black side king castling */
+    if (castlingRights.test(2) == true) {
+      if ((emptySquares.test(61) == true && emptySquares.test(62) == true) &&
+          (isSquareAttacked(WHITE, 61) == false &&
+           isSquareAttacked(WHITE, 62) == false)) {
+        moveList.push_back(Move(60, 62, KING_CASTLE, KING, BLACK));
+      }
     }
-  }
-
-  /* Black side queen castling */
-  if (castlingRights.test(3) == true) {
-    if ((emptySquares.test(59) == true && emptySquares.test(58) == true &&
-         emptySquares.test(57) == true) &&
-        (isSquareAttacked(WHITE, 59) == false &&
-         isSquareAttacked(WHITE, 58) == false)) {
-      moveList.push_back(Move(60, 58, QUEEN_CASTLE, KING, BLACK));
+    /* Black side queen castling */
+    if (castlingRights.test(3) == true) {
+      if ((emptySquares.test(59) == true && emptySquares.test(58) == true &&
+           emptySquares.test(57) == true) &&
+          (isSquareAttacked(WHITE, 59) == false &&
+           isSquareAttacked(WHITE, 58) == false)) {
+        moveList.push_back(Move(60, 58, QUEEN_CASTLE, KING, BLACK));
+      }
     }
   }
 }
@@ -531,7 +536,8 @@ void Bitboard::generateMoves() {
   moveList.clear();
 
   /* Loop over all the bitboards */
-  for (int i = 11; i >= 0; i--) {
+  int i = (turn == WHITE) ? 10 : 11;
+  for (; i >= 0; i -= 2) {
 
     /* Get a copy of each piece bitboard */
     bitset<64> bb = piecesBB[i];
@@ -566,7 +572,7 @@ void Bitboard::generateMoves() {
     }
   }
 
-  generateCastleMoves();
+  generateCastleMoves(turn);
 }
 
 Bitboard Bitboard::copyBoard() {

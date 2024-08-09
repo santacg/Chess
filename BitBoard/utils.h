@@ -9,6 +9,7 @@
 #define SQUARES 64
 #define DIAGONALS 16
 
+/* Commonly used enumerations */
 enum enumSquare {
   a1,
   b1,
@@ -79,6 +80,7 @@ enum enumSquare {
 
 enum Color { WHITE, BLACK, NONE };
 
+/* Commonly used mappings */
 extern const char *coordinateToSquare[64];
 
 extern const std::map<std::string, int> squareToCoordinate;

@@ -24,3 +24,5 @@ const std::map<std::string, int> squareToCoordinate = {
 
 const char *asciiPieces[12] = {"♟", "♙", "♜", "♖", "♞", "♘",
                                "♝", "♗", "♛", "♕", "♚", "♔"};
+
+int perft_function(int depth);

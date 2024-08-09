@@ -5,6 +5,7 @@
 #include <bitset>
 #include <cctype>
 #include <endian.h>
+#include <iostream>
 #include <string>
 
 /* Fen positions */
@@ -108,14 +109,37 @@ Bitboard parse_fen(string fen_str) {
   return Bitboard(pieces, castling_rights, en_passant_sq, turn);
 }
 
+/* Performance test function */
+int perft(Bitboard bitboard, int depth) {
+  /* Base case */
+  if (depth == 0) {
+    return 1;
+  }
+
+  bitboard.generateMoves();
+
+  /* General case */
+  int nodes = 0;
+  for (Move m : bitboard.getMoveList()) {
+    bitboard.printBoard();
+    Bitboard bb_cpy = bitboard.copyBoard();
+    if (bitboard.makeMove(m))
+      nodes += perft(bitboard, depth - 1);
+    bitboard = bb_cpy;
+  }
+
+  return nodes;
+}
+
 int main() {
   LookupTable *lut = init_lookup_table();
 
-  Bitboard fen_bit_board = parse_fen(INITIAL_CHESS_POSITION);
-  fen_bit_board.setLookupTable(lut);
-  fen_bit_board.printBoard();
-  fen_bit_board.generateMoves();
-  fen_bit_board.printMoveList();
+  /**/
+  /*Bitboard fen_bit_board = parse_fen(INITIAL_CHESS_POSITION);*/
+  /*fen_bit_board.setLookupTable(lut);*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
 
   /* Check test */
   /*fen_bit_board.makeMove(Move(e2, e4, DOUBLE_PAWN_PUSH, PAWN, WHITE));*/
@@ -135,24 +159,56 @@ int main() {
   /**/
 
   /* Few Ruy Lopez moves */
-  fen_bit_board.makeMove(Move(e2, e4, DOUBLE_PAWN_PUSH, PAWN, WHITE));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(e7, e5, DOUBLE_PAWN_PUSH, PAWN, BLACK));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(g1, f3, QUIET_MOVE, KNIGHT, WHITE));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(b8, c6, QUIET_MOVE, KNIGHT, BLACK));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(f1, b5, QUIET_MOVE, BISHOP, WHITE));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(a7, a6, QUIET_MOVE, PAWN, BLACK));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(b5, a4, QUIET_MOVE, BISHOP, WHITE));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(g8, f6, QUIET_MOVE, KNIGHT, BLACK));
-  fen_bit_board.printBoard();
-  fen_bit_board.makeMove(Move(e1, g1, KING_CASTLE, KING, WHITE));
-  fen_bit_board.printBoard();
+  /*fen_bit_board.makeMove(Move(e2, e4, DOUBLE_PAWN_PUSH, PAWN, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(e7, e5, DOUBLE_PAWN_PUSH, PAWN, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(g1, f3, QUIET_MOVE, KNIGHT, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(b8, c6, QUIET_MOVE, KNIGHT, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(f1, b5, QUIET_MOVE, BISHOP, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(a7, a6, QUIET_MOVE, PAWN, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(b5, a4, QUIET_MOVE, BISHOP, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(g8, f6, QUIET_MOVE, KNIGHT, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(e1, g1, KING_CASTLE, KING, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(f8, e7, QUIET_MOVE, BISHOP, BLACK));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+  /*fen_bit_board.makeMove(Move(f1, e1, QUIET_MOVE, ROOK, WHITE));*/
+  /*fen_bit_board.printBoard();*/
+  /*fen_bit_board.generateMoves();*/
+  /*fen_bit_board.printMoveList();*/
+
+  /* Performace test bitboard */
+  Bitboard perft_bb = parse_fen(
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
+  perft_bb.setLookupTable(lut);
+  cout << "performance test nodes: " << perft(perft_bb, 2) << endl;
 
   free(lut);
   return 0;
