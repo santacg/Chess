@@ -575,6 +575,8 @@ Bitboard Bitboard::copyBoard() {
 }
 
 void Bitboard::makeMove(Move move) {
+  /* Reset en passant square */
+  enPassantSq = no_square;
 
   /* Get the move type */
   int flag = move.getFlag();

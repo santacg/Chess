@@ -16,7 +16,7 @@
 
 Bitboard parse_fen(string fen_str) {
   bitset<64> pieces[12];
-  int str_counter = 0;
+  long unsigned int str_counter = 0;
 
   for (int i = RANKS - 1; i >= 0; --i) {
     for (int j = 0; j < FILES && str_counter < fen_str.length();
