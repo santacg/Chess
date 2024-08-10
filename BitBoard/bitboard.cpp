@@ -546,32 +546,47 @@ void Bitboard::generateMoves() {
     bitset<64> bb = piecesBB[i];
 
     /* Generate moves for each piece */
-    if (i == WHITE_KING_BB) {
+    switch (i) {
+    case WHITE_KING_BB:
       pieceMoves(bb, WHITE, &Bitboard::generateKingAttacks, KING);
-    } else if (i == BLACK_KING_BB) {
+      break;
+    case BLACK_KING_BB:
       pieceMoves(bb, BLACK, &Bitboard::generateKingAttacks, KING);
-    } else if (i == WHITE_QUEENS_BB) {
+      break;
+    case WHITE_QUEENS_BB:
       pieceMoves(bb, WHITE, &Bitboard::generateQueenAttacks, QUEEN);
-    } else if (i == BLACK_QUEENS_BB) {
+      break;
+    case BLACK_QUEENS_BB:
       pieceMoves(bb, BLACK, &Bitboard::generateQueenAttacks, QUEEN);
-    } else if (i == WHITE_ROOKS_BB) {
+      break;
+    case WHITE_ROOKS_BB:
       pieceMoves(bb, WHITE, &Bitboard::generateRookAttacks, ROOK);
-    } else if (i == BLACK_ROOKS_BB) {
+      break;
+    case BLACK_ROOKS_BB:
       pieceMoves(bb, BLACK, &Bitboard::generateRookAttacks, ROOK);
-    } else if (i == WHITE_BISHOPS_BB) {
+      break;
+    case WHITE_BISHOPS_BB:
       pieceMoves(bb, WHITE, &Bitboard::generateBishopAttacks, BISHOP);
-    } else if (i == BLACK_BISHOPS_BB) {
+      break;
+    case BLACK_BISHOPS_BB:
       pieceMoves(bb, BLACK, &Bitboard::generateBishopAttacks, BISHOP);
-    } else if (i == WHITE_KNIGHTS_BB) {
+      break;
+    case WHITE_KNIGHTS_BB:
       pieceMoves(bb, WHITE, &Bitboard::generateKnightAttacks, KNIGHT);
-    } else if (i == BLACK_KNIGHTS_BB) {
+      break;
+    case BLACK_KNIGHTS_BB:
       pieceMoves(bb, BLACK, &Bitboard::generateKnightAttacks, KNIGHT);
-    } else if (i == WHITE_PAWNS_BB) {
+      break;
+    case WHITE_PAWNS_BB:
       pieceMoves(bb, WHITE, &Bitboard::generatePawnMoves,
                  &Bitboard::generatePawnAttacks);
-    } else {
+      break;
+    case BLACK_PAWNS_BB:
       pieceMoves(bb, BLACK, &Bitboard::generatePawnMoves,
                  &Bitboard::generatePawnAttacks);
+      break;
+    default:
+      break;
     }
   }
 

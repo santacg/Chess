@@ -2,6 +2,14 @@
 #include "utils.h"
 #include <iostream>
 
+Move::Move() {
+  sourceSquare = no_square;
+  targetSquare = no_square;
+  flag = QUIET_MOVE;
+  piece = NO_PIECE;
+  color = NONE;
+}
+
 Move::Move(int source_square, int target_square, int fl, int piece_t, int clr) {
   sourceSquare = source_square;
   targetSquare = target_square;

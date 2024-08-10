@@ -9,6 +9,7 @@
 #define BISHOP 3
 #define QUEEN 4
 #define KING 5
+#define NO_PIECE 6
 
 #define QUIET_MOVE 0
 #define DOUBLE_PAWN_PUSH 1
@@ -48,6 +49,8 @@ private:
   bitset<1> color;
 
 public:
+  Move();
+
   Move(int source_square, int target_square, int fl, int piece_t, int clr);
 
   unsigned long getSourceSquare();

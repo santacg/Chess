@@ -109,6 +109,65 @@ Bitboard parse_fen(string fen_str) {
   return Bitboard(pieces, castling_rights, en_passant_sq, turn);
 }
 
+/* UCI move parser */
+Move uci_parser(string uci_str, Bitboard bb) {
+
+  string source_square_str, target_square_str;
+  char promotion_char;
+
+  source_square_str.push_back(uci_str[0]);
+  source_square_str.push_back(uci_str[1]);
+
+  target_square_str.push_back(uci_str[2]);
+  target_square_str.push_back(uci_str[3]);
+
+  promotion_char = '\0';
+  promotion_char = uci_str[4];
+
+  unsigned int source_square = squareToCoordinate.at(source_square_str);
+  unsigned int target_square = squareToCoordinate.at(target_square_str);
+
+  bb.generateMoves();
+  for (Move move : bb.getMoveList()) {
+    if (move.getSourceSquare() == source_square &&
+        move.getTargetSquare() == target_square) {
+
+      if (promotion_char != '\0') {
+        int flag = move.getFlag();
+        switch (promotion_char) {
+        case 'q':
+        case 'Q':
+          if (flag == QUEEN_PROMOTION || flag == QUEEN_PROMOTION_CAPTURE) {
+            return move;
+          }
+          continue;
+        case 'b':
+        case 'B':
+          if (flag == BISHOP_PROMOTION || flag == BISHOP_PROMOTION_CAPTURE) {
+            return move;
+          }
+          continue;
+        case 'n':
+        case 'N':
+          if (flag == KNIGHT_PROMOTION || flag == KNIGHT_PROMOTION_CAPTURE) {
+            return move;
+          }
+          continue;
+        case 'r':
+        case 'R':
+          if (flag == ROOK_PROMOTION || flag == ROOK_PROMOTION_CAPTURE) {
+            return move;
+          }
+          continue;
+        }
+      }
+      return move;
+    }
+  }
+
+  return Move();
+}
+
 /* Performance test function */
 int perft(Bitboard bitboard, int depth) {
   /* Base case */
@@ -131,81 +190,32 @@ int perft(Bitboard bitboard, int depth) {
 
 int main() {
   LookupTable *lut = init_lookup_table();
+  Bitboard bb = parse_fen(INITIAL_CHESS_POSITION);
+  bb.setLookupTable(lut);
 
-  /**/
-  /*Bitboard fen_bit_board = parse_fen(INITIAL_CHESS_POSITION);*/
-  /*fen_bit_board.setLookupTable(lut);*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
+  string uci_str;
+  while (true) {
+    bb.printBoard();
+    cout << "Insert UCI format string (exit to end): ";
+    getline(cin, uci_str);
 
-  /* Check test */
-  /*fen_bit_board.makeMove(Move(e2, e4, DOUBLE_PAWN_PUSH, PAWN, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.makeMove(Move(e7, e5, DOUBLE_PAWN_PUSH, PAWN, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.makeMove(Move(e1, e2, QUIET_MOVE, KING, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.makeMove(Move(d8, h4, QUIET_MOVE, QUEEN, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.makeMove(Move(a2, a3, QUIET_MOVE, PAWN, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.makeMove(Move(h4, e4, CAPTURE, QUEEN, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.makeMove(Move(a3, a4, QUIET_MOVE, PAWN, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /**/
+    if (uci_str == "exit") {
+      break;
+    }
 
-  /* Few Ruy Lopez moves */
-  /*fen_bit_board.makeMove(Move(e2, e4, DOUBLE_PAWN_PUSH, PAWN, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(e7, e5, DOUBLE_PAWN_PUSH, PAWN, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(g1, f3, QUIET_MOVE, KNIGHT, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(b8, c6, QUIET_MOVE, KNIGHT, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(f1, b5, QUIET_MOVE, BISHOP, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(a7, a6, QUIET_MOVE, PAWN, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(b5, a4, QUIET_MOVE, BISHOP, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(g8, f6, QUIET_MOVE, KNIGHT, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(e1, g1, KING_CASTLE, KING, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(f8, e7, QUIET_MOVE, BISHOP, BLACK));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
-  /*fen_bit_board.makeMove(Move(f1, e1, QUIET_MOVE, ROOK, WHITE));*/
-  /*fen_bit_board.printBoard();*/
-  /*fen_bit_board.generateMoves();*/
-  /*fen_bit_board.printMoveList();*/
+    Move move = uci_parser(uci_str, bb);
+    if (move.getPiece() == NO_PIECE) {
+      cout << endl << "Illegal move" << endl;
+    } else {
+      bb.makeMove(move);
+    }
+  }
 
   /* Performace test bitboard */
-  Bitboard perft_bb = parse_fen(INITIAL_CHESS_POSITION);
-  perft_bb.setLookupTable(lut);
-  cout << "performance test nodes: " << perft(perft_bb, 4) << endl;
+  /*Bitboard perft_bb = parse_fen(INITIAL_CHESS_POSITION);*/
+  /*perft_bb.setLookupTable(lut);*/
+  /*cout << "performance test nodes: " << perft(perft_bb, 4) << endl;*/
+  /**/
 
   free(lut);
   return 0;
