@@ -117,11 +117,9 @@ int perft(Bitboard bitboard, int depth) {
   }
 
   bitboard.generateMoves();
-
   /* General case */
   int nodes = 0;
   for (Move m : bitboard.getMoveList()) {
-    bitboard.printBoard();
     Bitboard bb_cpy = bitboard.copyBoard();
     if (bitboard.makeMove(m))
       nodes += perft(bitboard, depth - 1);
@@ -205,10 +203,9 @@ int main() {
   /*fen_bit_board.printMoveList();*/
 
   /* Performace test bitboard */
-  Bitboard perft_bb = parse_fen(
-      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
+  Bitboard perft_bb = parse_fen(INITIAL_CHESS_POSITION);
   perft_bb.setLookupTable(lut);
-  cout << "performance test nodes: " << perft(perft_bb, 2) << endl;
+  cout << "performance test nodes: " << perft(perft_bb, 4) << endl;
 
   free(lut);
   return 0;

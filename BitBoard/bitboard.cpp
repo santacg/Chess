@@ -160,18 +160,19 @@ bitset<64> Bitboard::generateDiagonalAttacks(int square) {
 
   // Getting the pieces assocciated to the diagonal of the sliding piece
   bitset<64> occupancy = allPieces;
-  bitset<64> diagonal = lookupTable->mask_diagonal[diagonal_index];
+  bitset<64> diagonal =
+      (bitset<64>)(lookupTable->mask_diagonal[diagonal_index].to_ulong() -
+                   lookupTable->piece_lookup[square].to_ulong());
 
   forward = occupancy & diagonal;
   reverse = (bitset<64>)byteswap(forward.to_ulong());
 
   // Getting everything but the sliding piece given the diagonal pieces
   forward = (bitset<64>)(forward.to_ulong() -
-                         (lookupTable->piece_lookup[square] << 1).to_ulong());
+                         (lookupTable->piece_lookup[square]).to_ulong());
   reverse =
       (bitset<64>)(reverse.to_ulong() -
-                   (byteswap(
-                       (lookupTable->piece_lookup[square] << 1).to_ulong())));
+                   (byteswap((lookupTable->piece_lookup[square]).to_ulong())));
 
   forward ^= (bitset<64>)byteswap(reverse.to_ulong());
   forward &= diagonal;
@@ -186,21 +187,23 @@ bitset<64> Bitboard::generateAntiDiagonalAttacks(int square) {
   int file_index = square % 8;
   int anti_diagonal_index = (rank_index + file_index) ^ 7;
 
-  // Getting the pieces assocciated to the diagonal of the sliding piece
+  // Getting the pieces assocciated to the antidiagonal of the sliding piece
   bitset<64> occupancy = allPieces;
   bitset<64> anti_diagonal =
-      lookupTable->mask_antidiagonal[anti_diagonal_index];
+      (bitset<64>)(lookupTable->mask_antidiagonal[anti_diagonal_index]
+                       .to_ulong() -
+                   lookupTable->piece_lookup[square].to_ulong());
 
   forward = occupancy & anti_diagonal;
   reverse = (bitset<64>)byteswap(forward.to_ulong());
 
-  // Getting everything but the sliding piece given the diagonal pieces
+  // Getting everything but the sliding piece given the pieces on the
+  // antidiagonal
   forward = (bitset<64>)(forward.to_ulong() -
-                         (lookupTable->piece_lookup[square] << 1).to_ulong());
+                         (lookupTable->piece_lookup[square]).to_ulong());
   reverse =
       (bitset<64>)(reverse.to_ulong() -
-                   (byteswap(
-                       (lookupTable->piece_lookup[square] << 1).to_ulong())));
+                   (byteswap((lookupTable->piece_lookup[square]).to_ulong())));
 
   forward ^= (bitset<64>)byteswap(reverse.to_ulong());
   forward &= anti_diagonal;
@@ -213,20 +216,20 @@ bitset<64> Bitboard::generateFileAttacks(int square) {
 
   int file_index = square % 8;
 
-  // Getting the pieces assocciated to the diagonal of the sliding piece
+  // Getting the pieces assocciated to the file of the sliding piece
   bitset<64> occupancy = allPieces;
-  bitset<64> file = lookupTable->mask_file[file_index];
+  bitset<64> file = (bitset<64>)(lookupTable->mask_file[file_index].to_ulong() -
+                                 lookupTable->piece_lookup[square].to_ulong());
 
   forward = occupancy & file;
   reverse = (bitset<64>)byteswap(forward.to_ulong());
 
-  // Getting everything but the sliding piece given the diagonal pieces
+  // Getting everything but the sliding piece given the pieces on the file
   forward = (bitset<64>)(forward.to_ulong() -
-                         (lookupTable->piece_lookup[square] << 1).to_ulong());
+                         (lookupTable->piece_lookup[square]).to_ulong());
   reverse =
       (bitset<64>)(reverse.to_ulong() -
-                   (byteswap(
-                       (lookupTable->piece_lookup[square] << 1).to_ulong())));
+                   (byteswap((lookupTable->piece_lookup[square]).to_ulong())));
 
   forward ^= (bitset<64>)byteswap(reverse.to_ulong());
   forward &= file;
