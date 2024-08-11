@@ -134,32 +134,52 @@ Move uci_parser(string uci_str, Bitboard bb) {
 
       if (promotion_char != '\0') {
         int flag = move.getFlag();
+
+        int promotion_capture_flag = 1;
+        if (target_square == source_square - 8 ||
+            target_square == source_square + 8) {
+          promotion_capture_flag = 0;
+        }
+
         switch (promotion_char) {
         case 'q':
         case 'Q':
-          if (flag == QUEEN_PROMOTION || flag == QUEEN_PROMOTION_CAPTURE) {
+          if (flag == QUEEN_PROMOTION && promotion_capture_flag == 0) {
+            return move;
+          } else if (flag == QUEEN_PROMOTION_CAPTURE &&
+                     promotion_capture_flag == 1) {
             return move;
           }
-          continue;
+          break;
         case 'b':
         case 'B':
-          if (flag == BISHOP_PROMOTION || flag == BISHOP_PROMOTION_CAPTURE) {
+          if (flag == BISHOP_PROMOTION && promotion_capture_flag == 0) {
+            return move;
+          } else if (flag == BISHOP_PROMOTION_CAPTURE &&
+                     promotion_capture_flag == 1) {
             return move;
           }
-          continue;
+          break;
         case 'n':
         case 'N':
-          if (flag == KNIGHT_PROMOTION || flag == KNIGHT_PROMOTION_CAPTURE) {
+          if (flag == KNIGHT_PROMOTION && promotion_capture_flag == 0) {
+            return move;
+          } else if (flag == KNIGHT_PROMOTION_CAPTURE &&
+                     promotion_capture_flag == 1) {
             return move;
           }
-          continue;
+          break;
         case 'r':
         case 'R':
-          if (flag == ROOK_PROMOTION || flag == ROOK_PROMOTION_CAPTURE) {
+          if (flag == ROOK_PROMOTION && promotion_capture_flag == 0) {
+            return move;
+          } else if (flag == ROOK_PROMOTION_CAPTURE &&
+                     promotion_capture_flag == 1) {
             return move;
           }
-          continue;
+          break;
         }
+        continue;
       }
       return move;
     }
