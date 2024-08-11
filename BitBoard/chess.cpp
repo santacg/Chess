@@ -213,29 +213,28 @@ int main() {
   Bitboard bb = parse_fen(INITIAL_CHESS_POSITION);
   bb.setLookupTable(lut);
 
-  string uci_str;
-  while (true) {
-    bb.printBoard();
-    cout << "Insert UCI format string (exit to end): ";
-    getline(cin, uci_str);
-
-    if (uci_str == "exit") {
-      break;
-    }
-
-    Move move = uci_parser(uci_str, bb);
-    if (move.getPiece() == NO_PIECE) {
-      cout << endl << "Illegal move" << endl;
-    } else {
-      bb.makeMove(move);
-    }
-  }
+  /*string uci_str;*/
+  /*while (true) {*/
+  /*  bb.printBoard();*/
+  /*  cout << "Insert UCI format string (exit to end): ";*/
+  /*  getline(cin, uci_str);*/
+  /**/
+  /*  if (uci_str == "exit") {*/
+  /*    break;*/
+  /*  }*/
+  /**/
+  /*  Move move = uci_parser(uci_str, bb);*/
+  /*  if (move.getPiece() == NO_PIECE) {*/
+  /*    cout << endl << "Illegal move" << endl;*/
+  /*  } else {*/
+  /*    bb.makeMove(move);*/
+  /*  }*/
+  /*}*/
 
   /* Performace test bitboard */
-  /*Bitboard perft_bb = parse_fen(INITIAL_CHESS_POSITION);*/
-  /*perft_bb.setLookupTable(lut);*/
-  /*cout << "performance test nodes: " << perft(perft_bb, 4) << endl;*/
-  /**/
+  Bitboard perft_bb = parse_fen(INITIAL_CHESS_POSITION);
+  perft_bb.setLookupTable(lut);
+  cout << "performance test nodes: " << perft(perft_bb, 4) << endl;
 
   free(lut);
   return 0;

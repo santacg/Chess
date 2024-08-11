@@ -89,7 +89,9 @@ private:
 
   bool isSquareAttacked(Color side, int square);
 
-  bool isCheck(Color side, int king_square);
+  bool isCheck(Color side);
+
+  bool isCheckmate(Color side);
 
   /* Updating methods */
   void updateDerivedBitboards();

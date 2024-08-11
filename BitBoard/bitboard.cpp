@@ -352,13 +352,26 @@ bool Bitboard::isSquareAttacked(Color side, int square) {
   return false;
 }
 
+bool Bitboard::isCheck(Color side) {
+  bitset<64> king = piecesBB[(side == WHITE) ? WHITE_KING_BB : BLACK_KING_BB];
+  int king_square = countr_zero(king.to_ulong());
+
+  if (isSquareAttacked((side == WHITE) ? BLACK : WHITE, king_square) == true) {
+    return true;
+  }
+
+  return false;
+}
+
+bool Bitboard::isCheckmate(Color side) {}
+
 void Bitboard::generateCastleMoves(Color side) {
 
   if (side == WHITE) {
     /* White side king castling */
     if (castlingRights.test(0) == true) {
-      /* Check if squares between king and rook are empty and if any of the end
-       * or passing squares are attacked by an opponents piece */
+      /* Check if squares between king and rook are empty and if any of the
+       * end or passing squares are attacked by an opponents piece */
       if ((emptySquares.test(5) == true && emptySquares.test(6) == true) &&
           (isSquareAttacked(BLACK, 5) == false &&
            isSquareAttacked(BLACK, 6) == false)) {
@@ -722,12 +735,7 @@ bool Bitboard::makeMove(Move move) {
 
   /* Check if the move is not legal (if the king is left on check after the
    * move) */
-
-  /* Get a copy of the king bitboard */
-  bitset<64> king = piecesBB[(color == WHITE) ? WHITE_KING_BB : BLACK_KING_BB];
-  int king_square = countr_zero(king.to_ulong());
-
-  if (isSquareAttacked((color == WHITE) ? BLACK : WHITE, king_square) == true) {
+  if (isCheck((Color)color) == true) {
     *this = bitboard_cpy;
     return false;
   }
