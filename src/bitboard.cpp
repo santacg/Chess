@@ -1,4 +1,5 @@
 #include "bitboard.h"
+#include "lookup_table.h"
 #include "move.h"
 #include "utils.h"
 #include <bit>
@@ -32,7 +33,10 @@
 #define BLACK_QUEENS_INIT 0x0800000000000000
 #define BLACK_KING_INIT 0x1000000000000000
 
-Bitboard::Bitboard() {
+Bitboard::Bitboard(LookupTable *lut) {
+
+  setLookupTable(lut);
+
   piecesBB[WHITE_PAWNS_BB] = WHITE_PAWNS_INIT;
   piecesBB[BLACK_PAWNS_BB] = BLACK_PAWNS_INIT;
   piecesBB[WHITE_ROOKS_BB] = WHITE_ROOKS_INIT;
@@ -47,6 +51,9 @@ Bitboard::Bitboard() {
   piecesBB[BLACK_KING_BB] = BLACK_KING_INIT;
 
   updateDerivedBitboards();
+  nonSlidingAttacks();
+  slidingAttacks();
+  generateMoves();
 
   turn = WHITE;
   castlingRights.reset();
@@ -54,12 +61,18 @@ Bitboard::Bitboard() {
   enPassantSq = no_square;
 }
 
-Bitboard::Bitboard(bitset<64> pieces[12], bitset<4> cR, int epSq, Color side) {
+Bitboard::Bitboard(LookupTable *lut, bitset<64> pieces[12], bitset<4> cR,
+                   int epSq, Color side) {
+  setLookupTable(lut);
+
   for (int i = 0; i < 12; i++) {
     piecesBB[i] = pieces[i];
   }
 
   updateDerivedBitboards();
+  nonSlidingAttacks();
+  slidingAttacks();
+  generateMoves();
 
   turn = side;
   castlingRights = cR;
@@ -67,6 +80,8 @@ Bitboard::Bitboard(bitset<64> pieces[12], bitset<4> cR, int epSq, Color side) {
 }
 
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
+
+Color Bitboard::getTurn() { return turn; }
 
 vector<Move> Bitboard::getMoveList() { return moveList; }
 
@@ -293,8 +308,6 @@ void Bitboard::slidingAttacks() {
 }
 
 bitset<64> Bitboard::attacksToSquare(int square) {
-  nonSlidingAttacks();
-  slidingAttacks();
 
   bitset<64> knights, kings, bishopsAndQueens, rooksAndQueens;
 
@@ -306,17 +319,44 @@ bitset<64> Bitboard::attacksToSquare(int square) {
       piecesBB[WHITE_BISHOPS_BB] | piecesBB[BLACK_BISHOPS_BB] | queens;
   rooksAndQueens = piecesBB[WHITE_ROOKS_BB] | piecesBB[BLACK_ROOKS_BB] | queens;
 
-  /* Intersect them with attacks sets */
-  return (pawnAttacks[WHITE][square] & piecesBB[BLACK_PAWNS_BB],
-          pawnAttacks[BLACK][square] & piecesBB[WHITE_PAWNS_BB],
-          knightAttacks[square] & knights, kingAttacks[square] & kings,
-          bishopAttacks[square] & bishopsAndQueens,
-          rookAttacks[square] & rooksAndQueens);
+  /* Intersect the pieces with attacks from the square and union everything */
+  return ((pawnAttacks[WHITE][square] & piecesBB[BLACK_PAWNS_BB]) |
+          (pawnAttacks[BLACK][square] & piecesBB[WHITE_PAWNS_BB]) |
+          (knightAttacks[square] & knights) | (kingAttacks[square] & kings) |
+          (bishopAttacks[square] & bishopsAndQueens) |
+          (rookAttacks[square] & rooksAndQueens));
+}
+
+bitset<64> Bitboard::attacksToSquare(int square, Color side) {
+
+  bitset<64> knights, king, bishopsAndQueens, rooksAndQueens;
+
+  /* Get the pieces given the side */
+  knights =
+      (side == WHITE) ? piecesBB[WHITE_KNIGHTS_BB] : piecesBB[BLACK_KNIGHTS_BB];
+
+  king = (side == WHITE) ? piecesBB[WHITE_KING_BB] : piecesBB[BLACK_KING_BB];
+
+  bitset<64> queens =
+      (side == WHITE) ? piecesBB[WHITE_QUEENS_BB] : piecesBB[BLACK_QUEENS_BB];
+
+  bishopsAndQueens = ((side == WHITE) ? piecesBB[WHITE_BISHOPS_BB]
+                                      : piecesBB[BLACK_BISHOPS_BB]) |
+                     queens;
+  rooksAndQueens =
+      ((side == WHITE) ? piecesBB[WHITE_ROOKS_BB] : piecesBB[BLACK_ROOKS_BB]) |
+      queens;
+
+  /* Intersect the pieces with attacks from the square and union everything */
+  return ((side == WHITE)
+              ? pawnAttacks[WHITE][square] & piecesBB[BLACK_PAWNS_BB]
+              : pawnAttacks[BLACK][square] & piecesBB[WHITE_PAWNS_BB]) |
+         (knightAttacks[square] & knights) | (kingAttacks[square] & king) |
+         (bishopAttacks[square] & bishopsAndQueens) |
+         (rookAttacks[square] & rooksAndQueens);
 }
 
 bool Bitboard::isSquareAttacked(Color side, int square) {
-  nonSlidingAttacks();
-  slidingAttacks();
 
   /* Intersect own pieces with opponent attacks */
   bitset<64> pawns =
@@ -329,9 +369,9 @@ bool Bitboard::isSquareAttacked(Color side, int square) {
   if ((knightAttacks[square] & knights).any())
     return true;
 
-  bitset<64> kings =
+  bitset<64> king =
       (side == WHITE) ? piecesBB[WHITE_KING_BB] : piecesBB[BLACK_KING_BB];
-  if ((kingAttacks[square] & kings).any())
+  if ((kingAttacks[square] & king).any())
     return true;
 
   bitset<64> queens =
@@ -363,7 +403,43 @@ bool Bitboard::isCheck(Color side) {
   return false;
 }
 
-bool Bitboard::isCheckmate(Color side) {}
+bool Bitboard::isCheckmate(Color side) {
+  bitset<64> king = piecesBB[(side == WHITE) ? WHITE_KING_BB : BLACK_KING_BB];
+
+  /* Get the position of all the pieces giving check */
+  bitset<64> checks = attacksToSquare(countr_zero(king.to_ulong()),
+                                      (side == WHITE) ? BLACK : WHITE);
+
+  int n_checks = 0;
+  int source_square = no_square;
+  /* Iterate over the position of all the pieces giving check */
+  while (checks.any()) {
+    n_checks++;
+    source_square = countr_zero(checks.to_ulong());
+    checks.set(source_square, false);
+  }
+
+  if (n_checks == 0) {
+    return false;
+  } else if (n_checks == 1) {
+    // Can be improved
+    for (Move m : moveList) {
+      if (makeMove(m) == true) {
+        return false;
+      }
+    }
+  } else {
+    for (Move m : moveList) {
+      if (m.getPiece() == KING) {
+        if (makeMove(m) == true) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
 
 void Bitboard::generateCastleMoves(Color side) {
 
@@ -727,8 +803,9 @@ bool Bitboard::makeMove(Move move) {
     }
   }
 
-  /* Update all derived bitboards */
+  /* Update all derived bitboards and sliding attacks */
   updateDerivedBitboards();
+  slidingAttacks();
 
   /* Change turn */
   (turn == WHITE) ? turn = BLACK : turn = WHITE;
@@ -740,6 +817,7 @@ bool Bitboard::makeMove(Move move) {
     return false;
   }
 
+  generateMoves();
   return true;
 }
 

@@ -188,7 +188,7 @@ private:
   /**
    * Generates all the possible castling moves for a side
    *
-   * @param Color side
+   * @param Color side to castle
    */
   void generateCastleMoves(Color side);
 
@@ -204,6 +204,16 @@ private:
   bitset<64> attacksToSquare(int square);
 
   /**
+   * Gets all the side pieces attacking a square
+   *
+   * @param int square checked
+   * @param Color side that attacks the square
+   * @return a bitset<64> with all the side pieces currently attacking the given
+   * square
+   */
+  bitset<64> attacksToSquare(int square, Color side);
+
+  /**
    * Checks if a square is attacked by the given side
    *
    * @param Color side to be checked
@@ -212,24 +222,6 @@ private:
    * false otherwhise
    */
   bool isSquareAttacked(Color side, int square);
-
-  /**
-   * Checks if there is a check for a given side
-   *
-   * @param Color side to be checked
-   * @return true if there is a checke for the given side,
-   * false otherwhise
-   */
-  bool isCheck(Color side);
-
-  /**
-   * Checks if there is a checkmate for a given side
-   *
-   * @param Color side to be checked
-   * @return true if there is a checkmate for the given side,
-   * false otherwhise
-   */
-  bool isCheckmate(Color side);
 
   /* Updating methods */
 
@@ -240,12 +232,20 @@ private:
 
 public:
   /* Initialize a board with chess default starting position */
-  Bitboard();
+  Bitboard(LookupTable *lut);
 
   /* Initialize a custom position */
-  Bitboard(bitset<64> pieces[12], bitset<4> cR, int epSq, Color turn_color);
+  Bitboard(LookupTable *lut, bitset<64> pieces[12], bitset<4> cR, int epSq,
+           Color turn_color);
 
   /* Getters and setters */
+
+  /**
+   * Returns current rutn
+   *
+   * @return Color turn
+   */
+  Color getTurn();
 
   /**
    * Returns a vector containing the moveList member
@@ -264,7 +264,7 @@ public:
   /* Move methods */
 
   /**
-   * Generate moves for the current position
+   * Generate pseudo-legal moves for the current position
    * and saves it to moveList member
    */
   void generateMoves();
@@ -277,6 +277,26 @@ public:
    * @return true if the move is valid, false otherwhise
    */
   bool makeMove(Move move);
+
+  /* Checks, checkmates, stalemates */
+
+  /**
+   * Checks if there is a check for a given side
+   *
+   * @param Color side to be checked
+   * @return true if there is a checke for the given side,
+   * false otherwhise
+   */
+  bool isCheck(Color side);
+
+  /**
+   * Checks if there is a checkmate for a given side
+   *
+   * @param Color side to be checked
+   * @return true if there is a checkmate for the given side,
+   * false otherwhise
+   */
+  bool isCheckmate(Color side);
 
   /* Output methods */
 

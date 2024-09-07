@@ -15,7 +15,7 @@
   "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq -"
 #define SCANDI "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6"
 
-Bitboard parse_fen(string fen_str) {
+Bitboard parse_fen(LookupTable *lut, string fen_str) {
   bitset<64> pieces[12];
   long unsigned int str_counter = 0;
 
@@ -106,7 +106,7 @@ Bitboard parse_fen(string fen_str) {
     en_passant_sq = squareToCoordinate.at(en_passant);
   }
 
-  return Bitboard(pieces, castling_rights, en_passant_sq, turn);
+  return Bitboard(lut, pieces, castling_rights, en_passant_sq, turn);
 }
 
 /* UCI move parser */
@@ -195,7 +195,6 @@ int perft(Bitboard bitboard, int depth) {
     return 1;
   }
 
-  bitboard.generateMoves();
   /* General case */
   int nodes = 0;
   for (Move m : bitboard.getMoveList()) {
@@ -210,13 +209,12 @@ int perft(Bitboard bitboard, int depth) {
 
 int main() {
   LookupTable *lut = init_lookup_table();
-  Bitboard bb = parse_fen(INITIAL_CHESS_POSITION);
-  bb.setLookupTable(lut);
+  Bitboard bb = parse_fen(lut, INITIAL_CHESS_POSITION);
 
   string uci_str;
   while (true) {
     bb.printBoard();
-    cout << "Insert UCI format string (exit to end): ";
+    cout << endl << "Insert UCI format string (exit to end): ";
     getline(cin, uci_str);
 
     if (uci_str == "exit") {
@@ -228,6 +226,13 @@ int main() {
       cout << endl << "Illegal move" << endl;
     } else {
       bb.makeMove(move);
+    }
+
+    if (bb.isCheckmate(bb.getTurn())) {
+      bb.printBoard();
+      cout << ((bb.getTurn() == WHITE) ? "White " : "Black ") << "is Checkmated"
+           << endl;
+      break;
     }
   }
 
