@@ -1,7 +1,7 @@
-#include "bitboard.h"
-#include "lookup_table.h"
-#include "move.h"
-#include "utils.h"
+#include "../includes/bitboard.h"
+#include "../includes/lookup_table.h"
+#include "../includes/move.h"
+#include "../includes/utils.h"
 #include <bitset>
 #include <cctype>
 #include <endian.h>

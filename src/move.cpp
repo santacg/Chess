@@ -1,5 +1,5 @@
-#include "move.h"
-#include "utils.h"
+#include "../includes/move.h"
+#include "../includes/utils.h"
 #include <iostream>
 
 Move::Move() {
