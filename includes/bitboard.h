@@ -298,6 +298,23 @@ public:
    */
   bool isCheckmate(Color side);
 
+  /**
+   * Checks if there is a stalemate for a given side
+   *
+   * @param Color side to be checked
+   * @return true if there is a stalemate for the given side,
+   * false otherwhise
+   */
+  bool isStaleMate(Color side);
+
+  /**
+   * Checks if the game ends
+   *
+   * @return true if the game has ended,
+   * false otherwhise
+   */
+  bool endingCheck();
+
   /* Output methods */
 
   /**

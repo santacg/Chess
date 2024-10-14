@@ -233,6 +233,11 @@ int main() {
       cout << ((bb.getTurn() == WHITE) ? "White " : "Black ") << "is Checkmated"
            << endl;
       break;
+    } else if (bb.isStaleMate(bb.getTurn())) {
+      bb.printBoard();
+      cout << ((bb.getTurn() == WHITE) ? "White " : "Black ") << "is StaleMated"
+           << endl;
+      break;
     }
   }
 

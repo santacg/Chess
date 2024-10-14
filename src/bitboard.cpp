@@ -441,6 +441,28 @@ bool Bitboard::isCheckmate(Color side) {
   return true;
 }
 
+bool Bitboard::isStaleMate(Color side) {
+  /* Check if king is in check */
+  if (isCheck(side) == true) {
+    return false;
+  }
+
+  /* Copy board in case there is no stalemate */
+  Bitboard bitboard_cpy = copyBoard();
+
+  /* If the king is not in check, look if legal moves can be made */
+  int staleMate = true;
+  for (Move m : moveList) {
+    if (makeMove(m) == true) {
+      staleMate = false;
+      *this = bitboard_cpy;
+      break;
+    }
+  }
+
+  return staleMate;
+}
+
 void Bitboard::generateCastleMoves(Color side) {
 
   if (side == WHITE) {
@@ -807,9 +829,6 @@ bool Bitboard::makeMove(Move move) {
   updateDerivedBitboards();
   slidingAttacks();
 
-  /* Change turn */
-  (turn == WHITE) ? turn = BLACK : turn = WHITE;
-
   /* Check if the move is not legal (if the king is left on check after the
    * move) */
   if (isCheck((Color)color) == true) {
@@ -817,6 +836,10 @@ bool Bitboard::makeMove(Move move) {
     return false;
   }
 
+  /* Change turn */
+  (turn == WHITE) ? turn = BLACK : turn = WHITE;
+
+  /* Generate moves for the new position */
   generateMoves();
   return true;
 }
