@@ -50,15 +50,15 @@ Bitboard::Bitboard(LookupTable *lut) {
   piecesBB[WHITE_KING_BB] = WHITE_KING_INIT;
   piecesBB[BLACK_KING_BB] = BLACK_KING_INIT;
 
-  updateDerivedBitboards();
-  nonSlidingAttacks();
-  slidingAttacks();
-  generateMoves();
-
   turn = WHITE;
   castlingRights.reset();
   castlingRights.flip();
   enPassantSq = no_square;
+
+  updateDerivedBitboards();
+  nonSlidingAttacks();
+  slidingAttacks();
+  generateMoves();
 }
 
 Bitboard::Bitboard(LookupTable *lut, bitset<64> pieces[12], bitset<4> cR,
@@ -69,14 +69,14 @@ Bitboard::Bitboard(LookupTable *lut, bitset<64> pieces[12], bitset<4> cR,
     piecesBB[i] = pieces[i];
   }
 
+  turn = side;
+  castlingRights = cR;
+  enPassantSq = epSq;
+
   updateDerivedBitboards();
   nonSlidingAttacks();
   slidingAttacks();
   generateMoves();
-
-  turn = side;
-  castlingRights = cR;
-  enPassantSq = epSq;
 }
 
 void Bitboard::setLookupTable(LookupTable *lut) { lookupTable = lut; }
