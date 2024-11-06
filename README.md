@@ -13,7 +13,6 @@ its training, this part is currently beign developed.
 
 ```bash
 git clone https://github.com/santacg/Chess.git
-cd src
 ```
 **Usage**
 
