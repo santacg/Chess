@@ -19,9 +19,6 @@ git clone https://github.com/santacg/Chess.git
 ```bash
 make
 ./chess
-```
-The engine will display a chessboard with ASCII pieces and prompt for a UCI move input.
-
 [santacg@archlinux Chess]$ ./chess
 
 8 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 
@@ -57,3 +54,5 @@ Side to move: black
 Castling rights: KQkq
 
 En passant square: e3
+```
+The engine will display a chessboard with ASCII pieces and prompt for a UCI move input, as shown above.
