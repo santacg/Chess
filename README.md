@@ -15,6 +15,7 @@ its training, this part is currently beign developed.
 git clone https://github.com/santacg/Chess.git
 ```
 **Usage**
+
 Compiling and executing.
 ```bash
 make
