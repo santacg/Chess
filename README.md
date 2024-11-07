@@ -15,11 +15,14 @@ its training, this part is currently beign developed.
 git clone https://github.com/santacg/Chess.git
 ```
 **Usage**
-
+Compiling and executing.
 ```bash
 make
 ./chess
-[santacg@archlinux Chess]$ ./chess
+```
+The engine will display a chessboard with ASCII pieces and prompt for a UCI move input, as shown below.
+```bash
+[santacg@archlinux Chess]$ ./chess 
 
 8 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 
 7 ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙ 
@@ -54,5 +57,22 @@ Side to move: black
 Castling rights: KQkq
 
 En passant square: e3
+
+Insert UCI format string (exit to end): e7e5
+
+8 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 
+7 ♙ ♙ ♙ ♙ . ♙ ♙ ♙ 
+6 . . . . . . . . 
+5 . . . . ♙ . . . 
+4 . . . . ♟ . . . 
+3 . . . . . . . . 
+2 ♟ ♟ ♟ ♟ . ♟ ♟ ♟ 
+1 ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
+  a b c d e f g h 
+
+Side to move: white
+
+Castling rights: KQkq
+
+En passant square: e6
 ```
-The engine will display a chessboard with ASCII pieces and prompt for a UCI move input, as shown above.
