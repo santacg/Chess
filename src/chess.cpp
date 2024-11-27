@@ -242,8 +242,7 @@ int main() {
   }
 
   /* Performace test bitboard */
-  /*Bitboard perft_bb = parse_fen(INITIAL_CHESS_POSITION);*/
-  /*perft_bb.setLookupTable(lut);*/
+  /*Bitboard perft_bb = parse_fen(lut, INITIAL_CHESS_POSITION);*/
   /*cout << "performance test nodes: " << perft(perft_bb, 4) << endl;*/
   /**/
 

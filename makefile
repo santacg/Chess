@@ -1,5 +1,5 @@
 CPP := g++
-CPPFLAGS := -std=c++23 -Wall -Wextra -pedantic -g
+CPPFLAGS := -std=c++23 -Wall -Wextra -pedantic -O3 -g
 
 INCLUDES_DIR := includes
 SRC_DIR := src
