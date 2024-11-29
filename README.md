@@ -9,6 +9,10 @@ The design follows object-oriented programming (OOP) principles for clear struct
 The goal of this project is to design and train a simple NNUE neural network that uses the implemented engine for 
 its training, this part is currently beign developed.
 
+**Important**
+
+Perf_t function wich gives number of moves for a given depth does not output the correct number of moves. This means that the make move or generate moves functions have bugs.
+
 **Installation**
 
 ```bash
