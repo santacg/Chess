@@ -2,18 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import data
+from torch.utils.data import DataLoader, random_split
 
 INPUT_SIZE = 64 * 64 * 10
 
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
 
-print(f"Using {device} device")
 class NNUE(nn.Module):
     def __init__(self):
         super(NNUE, self).__init__()
@@ -37,118 +30,117 @@ class NNUE(nn.Module):
     def forward(self, input_player, input_opponent):
         # Procesar entrada del jugador actual
         out_player = self.activation(self.fc1_player(input_player))
-        out_player = torch.clamp(out_player, min=0.0, max=1.0)
+        out_player = torch.clamp(out_player, max=1.0)
         
         # Procesar entrada del oponente
         out_opponent = self.activation(self.fc1_opponent(input_opponent))
-        out_opponent = torch.clamp(out_opponent, min=0.0, max=1.0)
+        out_opponent = torch.clamp(out_opponent, max=1.0)
 
         # Combinar las salidas
-        combined = torch.cat((out_player, out_opponent))
+        combined = torch.cat((out_player, out_opponent), dim=1)
         
         # Segunda capa
         out_combined = self.activation(self.fc2(combined))
-        out_combined = torch.clamp(out_combined, min=0.0, max=1.0)
+        out_combined = torch.clamp(out_combined, max=1.0)
 
         # Tercera capa
         out_hidden = self.activation(self.fc3(out_combined))
-        out_hidden = torch.clamp(out_hidden, min=0.0, max=1.0)
+        out_hidden = torch.clamp(out_hidden, max=1.0)
 
-        
         # Capa de salida
-        output = self.activation(self.output(out_hidden))
-        output = torch.clamp(output, min=0.0, max=1.0)
+        output = self.output(out_hidden)
         return output
     
-    def train_loop(self, dataTrain, loss_fn, optimizer):
+
+def main():
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using {device} device")
+
+    data = torch.load('data.pt')
+    print("Archivo cargado correctamente en local.")
+    return 
+    #data.process_to_pt("sample_same_row.jsonl", "data_same.pt")
+
+    dataset = data.ChessDataset("data.pt")
+    dataset_size = len(dataset)
+    print(f"Dataset Size = {dataset_size}")
+
+    train_size = int(0.8 * dataset_size)
+    test_size = dataset_size - train_size 
+
+    train_dataset, test_datset = random_split(dataset, [train_size, test_size])
+
+    # Definimos los hiperparametros del entrenamiento
+    learning_rate = 1e-2
+    batch_size = 64
+    epochs = 5
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_datset, batch_size=batch_size)
+
+    model = NNUE()
+    model = model.to(device)
+
+    print("Parámetros del modelo:")
+    for name, param in model.named_parameters():
+        print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
+
+
+    def train_loop(model, dataTrain, loss_fn, optimizer):
         size = len(dataTrain)
-        print(size)
-        self.train()
+        model.train()
 
-        i = 0
-        for (input_p, input_o, y) in dataTrain:
-            # Calculamos el resultado del modelo y la pérdida
-            pred = self.forward(input_p, input_o)
-            y = y.unsqueeze(0)
-            
-            loss = loss_fn(pred, y)
+        for batch, (input, y) in enumerate(dataTrain):
+            input_p, input_o = input['current'], input['opponent']
+            input_p, input_o, y = input_p.to(device), input_o.to(device), y.to(device)
 
-            # Retropropagación
+            pred = model(input_p, input_o)
+            loss = loss_fn(pred, y.unsqueeze(1))
+
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-            print("Iteracion train: ", i)
-            i += 1
+
+            if batch % 100 == 0:
+                loss = loss.item()
+                print(f"Loss at batch {batch}/{size}: {loss:.4f}")
 
 
-    def test_loop(self, dataTest, loss_fn):
-        size = len(dataTest)  # Tamaño total de los datos de prueba
-        self.eval()  # Establecer el modelo en modo de evaluación (sin dropout, etc.)
+    def test_loop(model, dataTest, loss_fn):
+        model.eval()
 
-        num_batches = len(dataTest)  # Número total de lotes de prueba
-        test_loss = 0.0  # Inicializar la pérdida total
+        num_batches = len(dataTest)
+        test_loss = 0
 
-        total_error = 0.0  # Inicializar el error total (para calcular MAE o MSE)
+        with torch.no_grad():
+            for (input, y) in (dataTest):
+                input_p, input_o = input['current'], input['opponent']
+                input_p, input_o, y = input_p.to(device), input_o.to(device), y.to(device)
 
-        with torch.no_grad():  # Desactivar gradientes durante la evaluación
-            for (input_p, input_o, y) in (dataTest):
-                # Pasar las entradas por el modelo
-                pred = self.forward(input_p, input_o)
-                y = y.unsqueeze(0)
-                print(y)
-                print(pred)
-                # Sumar la pérdida en cada lote
-                loss = loss_fn(pred, y)
-                test_loss += loss.item()
+                pred = model(input_p, input_o)
 
-                # Si prefieres el error cuadrático medio (MSE):
-                total_error += ((pred - y) ** 2).sum().item()  # Para MSE
+                batch_loss = loss_fn(pred, y.unsqueeze(1)).item()
+                test_loss += batch_loss
 
-        # Promediar la pérdida total
         test_loss /= num_batches
-
-        # Promediar el error
-        avg_error = (total_error / size) ** 0.5  # Para MSE, toma la raíz cuadrada
-
-        print(f"Test Error: \n Avg loss: {test_loss:>8f} \n Avg error (MAE): {avg_error:>8f}")
+        print(f"Test Error: \n Avg loss: {test_loss:>8f} \n")
 
 
-db = data.ChessDatabase("chess_nn.db", "/usr/bin/stockfish")
-# db.crear_db()
-# db.load_games_to_db("./Games/lichess_elite_2024-08.pgn")
-db.close_engine()
+    # Definimos la función de pérdida
+    loss_fn = nn.MSELoss()
 
-train_dataset = data.ChessDataset(db_name='chess_nn.db', is_test=False)
-train_loader = train_dataset.load_data(batch_size=32)
+    # Definimos el algoritmo de optimización
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
-test_dataset = data.ChessDataset(db_name='chess_nn.db', is_test=True)
-test_loader = test_dataset.load_data(batch_size=32)
+    for t in range(epochs):
+        print(f"Epoch {t+1}\n-------------------------------")
+        train_loop(model, train_loader, loss_fn, optimizer)
+        test_loop(model, test_loader, loss_fn)
 
-model = NNUE()
-print(model)
+    print("Done!")
 
-# Definimos los hiperparametros del entrenamiento
-learning_rate = 1e-1
-batch_size = 32
-epochs = 4
+    torch.save(model.state_dict(), "NNUE.pth")
 
-# Definimos la función de pérdida
-loss_fn = nn.MSELoss()
-
-# Definimos el algoritmo de optimización
-optimizer = optim.SGD(model.parameters(), lr=learning_rate)
-
-for t in range(epochs):
-     print(f"Epoch {t+1}\n-------------------------------")
-     model.train_loop(train_dataset, loss_fn, optimizer)
-     model.test_loop(test_dataset, loss_fn)
-print("Done!")
-def summarize_parameters(model):
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print(f"{name}: Mean = {param.data.mean():.4f}, Std = {param.data.std():.4f}")
-
-# Después de entrenar el modelo
-summarize_parameters(model)
-train_dataset.close()
-test_dataset.close()
+if __name__ == "__main__":
+    main()

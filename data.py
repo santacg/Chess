@@ -97,7 +97,7 @@ def process_to_pt(input_file, output_file):
     print(f"Datos guardados en {output_file}")
 
 
-class ChessDatasetPT(Dataset):
+class ChessDataset(Dataset):
 
     def __init__(self, data_file):
         # Cargar datos preprocesados
@@ -119,3 +119,5 @@ class ChessDatasetPT(Dataset):
         label = self.labels[index]
 
         return inputs, label
+
+process_to_pt("sample.jsonl", "data.pt")
