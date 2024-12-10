@@ -211,40 +211,40 @@ int main() {
   LookupTable *lut = init_lookup_table();
   Bitboard bb = parse_fen(lut, INITIAL_CHESS_POSITION);
 
-  string uci_str;
-  while (true) {
-    bb.printBoard();
-    cout << endl << "Insert UCI format string (exit to end): ";
-    getline(cin, uci_str);
-
-    if (uci_str == "exit") {
-      break;
-    }
-
-    Move move = uci_parser(uci_str, bb);
-    if (move.getPiece() == NO_PIECE) {
-      cout << endl << "Illegal move" << endl;
-    } else {
-      bb.makeMove(move);
-    }
-
-    if (bb.isCheckmate(bb.getTurn())) {
-      bb.printBoard();
-      cout << ((bb.getTurn() == WHITE) ? "White " : "Black ") << "is Checkmated"
-           << endl;
-      break;
-    } else if (bb.isStaleMate(bb.getTurn())) {
-      bb.printBoard();
-      cout << ((bb.getTurn() == WHITE) ? "White " : "Black ") << "is StaleMated"
-           << endl;
-      break;
-    }
-  }
-
-  /* Performace test bitboard */
-  /*Bitboard perft_bb = parse_fen(lut, INITIAL_CHESS_POSITION);*/
-  /*cout << "performance test nodes: " << perft(perft_bb, 4) << endl;*/
+  /*string uci_str;*/
+  /*while (true) {*/
+  /*  bb.printBoard();*/
+  /*  cout << endl << "Insert UCI format string (exit to end): ";*/
+  /*  getline(cin, uci_str);*/
   /**/
+  /*  if (uci_str == "exit") {*/
+  /*    break;*/
+  /*  }*/
+  /**/
+  /*  Move move = uci_parser(uci_str, bb);*/
+  /*  if (move.getPiece() == NO_PIECE) {*/
+  /*    cout << endl << "Illegal move" << endl;*/
+  /*  } else {*/
+  /*    bb.makeMove(move);*/
+  /*  }*/
+  /**/
+  /*  if (bb.isCheckmate(bb.getTurn())) {*/
+  /*    bb.printBoard();*/
+  /*    cout << ((bb.getTurn() == WHITE) ? "White " : "Black ") << "is Checkmated"*/
+  /*         << endl;*/
+  /*    break;*/
+  /*  } else if (bb.isStaleMate(bb.getTurn())) {*/
+  /*    bb.printBoard();*/
+  /*    cout << ((bb.getTurn() == WHITE) ? "White " : "Black ") << "is StaleMated"*/
+  /*         << endl;*/
+  /*    break;*/
+  /*  }*/
+  /*}*/
+  /**/
+  /* Performace test bitboard */
+  Bitboard perft_bb = parse_fen(lut, INITIAL_CHESS_POSITION);
+  cout << "performance test nodes: " << perft(perft_bb, 5) << endl;
+
 
   free(lut);
   return 0;

@@ -1,16 +1,16 @@
-import sqlite3
 import chess
-import chess.pgn
-import numpy as np
+import json
 import torch
+from torch.utils.data import Dataset
+from tqdm import tqdm
 from bitarray import bitarray
-from torch.utils.data import Dataset, DataLoader
-from chess.engine import Limit
-from chess.engine import SimpleEngine
+
+MATE_SCORE = 100000
+
 
 def get_input_idx(x, y, z):
     return (x * 64 * 10) + (y * 10) + z
-from chess.engine import SimpleEngine
+
 
 def get_input_bits(board, turn):
     input = bitarray(64*64*10)
@@ -34,166 +34,88 @@ def get_input(board):
     return input_current, input_opponent
 
 
-class ChessDatabase():
-    def __init__(self, db_name: str, stockfish_path: str):
-        self.db_name = db_name
-        self.engine = SimpleEngine.popen_uci(stockfish_path)
+def get_best_evaluation(position):
+    # Seleccionar la evaluación con la mayor profundidad
+    best_eval = max(position['evals'], key=lambda x: x['depth'])
 
-    def crear_db(self):
-        conn = sqlite3.connect(self.db_name)
-        cursor = conn.cursor()
+    # Obtener el primer PV de la mejor evaluación
+    best_pv = best_eval['pvs'][0]
 
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS games (
-                id INTEGER PRIMARY KEY,
-                input_current BLOB,
-                input_opponent BLOB,
-                evaluation REAL
-            )
-        ''')
+    # Extraer la evaluación 
+    eval_result = -1
+    if 'cp' in best_pv:
+        eval_result = best_pv['cp']  # Evaluación en centipawns
+    elif 'mate' in best_pv:
+        eval_result = MATE_SCORE / best_pv['mate']  # Evaluación en jugadas hasta el mate
 
-        conn.commit()
-        conn.close()
-
-    def get_stockfish_eval(self, board):
-        # Evaluar la posición con Stockfish
-        info = self.engine.analyse(board, Limit(depth=15))  # Evaluación rápida
-        eval = info["score"].relative.score()
-
-        # Verificar si es una evaluación de mate
-        if isinstance(info["score"], chess.engine.Mate):
-            return None
-
-        return eval 
+    return eval_result
 
 
-    def load_games_to_db(self, pgn_file_path: str):
-        # Nos conectamos a la base de datos
-        conn = sqlite3.connect(self.db_name)
-        cursor = conn.cursor()
+def process_to_pt(input_file, output_file):
 
-        # Abrimos el archivo en formato PGN
-        pgn_file = open(pgn_file_path)
+    inputs_current = []
+    inputs_opponent = []
+    labels = []
 
-        # Procesamos todas las partidas del archivo
-        i = 0
-        for i in range(1000):
-            print("Iteración: ", i)
-            game = chess.pgn.read_game(pgn_file)
-            # Cuando no se encuentre partida, salimos del bucle
-            if game is None:
-                break
+    with open(input_file, "r") as f:
+        for line in tqdm(f, desc="Procesando positiones"):
+            # Cargamos la posición desde el JSONL
+            position = json.loads(line)
 
-            # Cargamos el tablero para obtener los datos relevantes
-            board = game.board()
+            # Cargar tablero 
+            board = chess.Board(position['fen'])
 
-            moves = game.mainline_moves()
-            n_moves = len(list(moves))
-
-            # Ejecutamos un número aleatorio de movimientos
-            rand = np.random.rand()
-
-            if rand < 0.15:  # 15% para Aperturas
-                rng = int(np.random.uniform(0, n_moves // 4))  # Seleccionar las primeras jugadas
-            elif rand < 0.65:  # 50% para Medio Juego
-                rng = int(np.random.uniform(n_moves // 4, 3 * n_moves // 4))  # Seleccionar jugadas en el medio juego
-            else:  # 35% para Finales
-                rng = int(np.random.uniform(3 * n_moves // 4, n_moves))  # Seleccionar las últimas jugadas
-
-
-            for idx, move in enumerate(moves):
-                if idx == rng:
-                    break
-                board.push(move)
-
-            # Obtenemos los inputs
+            # Generar la posición en formato HalfKP
             input_current, input_opponent = get_input(board)
 
-            # Evaluación de Stockfish
-            eval = self.get_stockfish_eval(board)
+            tensor_current = torch.tensor(
+                input_current.tolist(),
+                dtype=torch.float32
+            )
 
-            if eval is None:
-                continue
+            tensor_opponent = torch.tensor(
+                input_opponent.tolist(),
+                dtype=torch.float32
+            )
 
-            # Guardamos los datos en la base de datos
-            cursor.execute('''
-                INSERT INTO games (input_current, input_opponent, evaluation)
-                VALUES (?, ?, ?)
-            ''', (input_current.tobytes(), input_opponent.tobytes(), eval))
-            i +=1
+            eval = get_best_evaluation(position) 
 
-        conn.commit()
-        conn.close()
+            inputs_current.append(tensor_current)
+            inputs_opponent.append(tensor_opponent)
+            labels.append(eval)
 
-    def close_engine(self):
-        self.engine.quit()
-    
+    inputs_current = torch.stack(inputs_current)
+    inputs_opponent = torch.stack(inputs_opponent)
+    labels = torch.tensor(labels, dtype=torch.float32)
 
-class ChessDataset(Dataset):
-    def __init__(self, db_name: str, is_test=False, test_size=0.2):
-        self.db_name = db_name
-        self.is_test = is_test
-        self.test_size = test_size
-        self.conn = sqlite3.connect(db_name)
-        self.cursor = self.conn.cursor()
+    torch.save({
+        'inputs_current': inputs_current,
+        'inputs_opponent': inputs_opponent,
+        'labels': labels
+    }, output_file)
 
-        # Cargar los índices de las partidas
-        self.cursor.execute('SELECT COUNT(*) FROM games')
-        self.num_games = self.cursor.fetchone()[0]
+    print(f"Datos guardados en {output_file}")
 
-        # Dividir los índices en conjuntos de entrenamiento y prueba
-        self.train_indices, self.test_indices = self._split_data()
 
-    def _split_data(self):
-        # Generar índices de las partidas
-        all_indices = list(range(1, self.num_games + 1))
-        np.random.shuffle(all_indices)
+class ChessDatasetPT(Dataset):
 
-        # Dividir en entrenamiento y prueba
-        test_size = int(self.num_games * self.test_size)
-        test_indices = all_indices[:test_size]
-        train_indices = all_indices[test_size:]
+    def __init__(self, data_file):
+        # Cargar datos preprocesados
+        data = torch.load(data_file)
+        self.inputs_current = data['inputs_current']
+        self.inputs_opponent = data['inputs_opponent']
+        self.labels = data['labels']
 
-        return train_indices, test_indices
 
     def __len__(self):
-        # Retorna el número de partidas en el conjunto de datos de test o de entrenamiento
-        if self.is_test:
-            return len(self.test_indices)
-        else:
-            return len(self.train_indices)
+       return len(self.labels)
+
 
     def __getitem__(self, index):
-        # Seleccionar el índice correspondiente según si es entrenamiento o prueba
-        if self.is_test:
-            index = self.test_indices[index]
-        else:
-            index = self.train_indices[index]
+        inputs = {
+            'current': self.inputs_current[index],
+            'opponent': self.inputs_opponent[index]
+        }
+        label = self.labels[index]
 
-        # Obtener las entradas para el índice dado
-        self.cursor.execute('SELECT input_current, input_opponent, evaluation FROM games WHERE id = ?', (index,))
-        row = self.cursor.fetchone()
-
-        input_current_blob, input_opponent_blob, eval = row
-        input_current = bitarray()
-        input_current.frombytes(input_current_blob)
-
-        input_opponent = bitarray()
-        input_opponent.frombytes(input_opponent_blob)
-
-        # Convertir los bitarrays a tensores
-        input_current = torch.tensor(input_current, dtype=torch.float32)
-        input_opponent = torch.tensor(input_opponent, dtype=torch.float32)
-
-        eval = torch.tensor(eval, dtype=torch.float32)
-
-        return input_current, input_opponent, eval
-
-    def load_data(self, batch_size=32):
-        # Crear el DataLoader para entrenamiento o prueba según el parámetro is_test
-        data_loader = DataLoader(self, batch_size=batch_size, shuffle=not self.is_test)
-        return data_loader
-
-    def close(self):
-        self.conn.close()
-
+        return inputs, label
