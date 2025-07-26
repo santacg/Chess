@@ -329,7 +329,7 @@ int perft(Bitboard bitboard, int depth) {
   int nodes = 0;
   for (Move m : bitboard.getMoveList()) {
     Bitboard bb_cpy = bitboard.copyBoard();
-    if (bitboard.makeMove(m))
+    if (bitboard.makeMove(m) == true)
       nodes += perft(bitboard, depth - 1);
     bitboard = bb_cpy;
   }
@@ -348,6 +348,17 @@ int main() {
     // TO-DO use bb parsed from fen string
     LookupTable *lut = init_lookup_table();
     Bitboard perft_bb = Bitboard(lut);
+
+    string fen_str;
+
+    cout << "FEN (or press enter for default position): " << endl;
+    getline(cin, fen_str);
+
+    if (fen_str != "") {
+      perft_bb = parse_fen(lut, fen_str);
+    }
+
+    perft_bb.printBoard();
 
     string depth_str;
 
