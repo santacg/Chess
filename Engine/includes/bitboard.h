@@ -4,6 +4,7 @@
 #include "lookup_table.h"
 #include "move.h"
 #include "utils.h"
+#include <array>
 #include <bitset>
 #include <vector>
 
@@ -223,6 +224,11 @@ private:
    */
   bool isSquareAttacked(Color side, int square);
 
+  /**
+   * TO-DO
+   */
+  int pieceAtSquare(int square);
+
   /* Updating methods */
 
   /**
@@ -255,6 +261,11 @@ public:
   vector<Move> getMoveList();
 
   /**
+   * TO-DO
+   */
+  array<int, 64> getPiecesAtSquares();
+
+  /**
    * Set the LookupTable struct for the Bitboard object
    *
    * @param pointer to the LookupTable struct
@@ -263,6 +274,7 @@ public:
 
   /* Move methods */
 
+  // SHOULD MAKE THIS PRIVATE
   /**
    * Generate pseudo-legal moves for the current position
    * and saves it to moveList member

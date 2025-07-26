@@ -2,9 +2,12 @@
 #include "../includes/lookup_table.h"
 #include "../includes/move.h"
 #include "../includes/utils.h"
+#include <array>
 #include <bit>
 #include <bitset>
 #include <iostream>
+
+#define EMPTY_SQUARE 12
 
 #define WHITE_PAWNS_BB 0
 #define BLACK_PAWNS_BB 1
@@ -404,6 +407,9 @@ bool Bitboard::isCheck(Color side) {
 }
 
 bool Bitboard::isCheckmate(Color side) {
+  /* Copy board in case there is no checkmate */
+  Bitboard bitboard_cpy = copyBoard();
+
   bitset<64> king = piecesBB[(side == WHITE) ? WHITE_KING_BB : BLACK_KING_BB];
 
   /* Get the position of all the pieces giving check */
@@ -425,6 +431,7 @@ bool Bitboard::isCheckmate(Color side) {
     // Can be improved
     for (Move m : moveList) {
       if (makeMove(m) == true) {
+        *this = bitboard_cpy;
         return false;
       }
     }
@@ -432,12 +439,14 @@ bool Bitboard::isCheckmate(Color side) {
     for (Move m : moveList) {
       if (m.getPiece() == KING) {
         if (makeMove(m) == true) {
+          *this = bitboard_cpy;
           return false;
         }
       }
     }
   }
 
+  *this = bitboard_cpy;
   return true;
 }
 
@@ -461,6 +470,35 @@ bool Bitboard::isStaleMate(Color side) {
   }
 
   return staleMate;
+}
+
+int Bitboard::pieceAtSquare(int square) {
+  int i;
+  bool found = false;
+
+  for (i = 0; i < 12; i++) {
+    if ((lookupTable->piece_lookup[square] & piecesBB[i]).any()) {
+      found = true;
+      break;
+    }
+  }
+
+  if (found == false) {
+    return EMPTY_SQUARE;
+  }
+
+  return i;
+}
+
+array<int, 64> Bitboard::getPiecesAtSquares() {
+  array<int, 64> pieces{};
+
+  for (int i = 0; i < 64; i++) {
+    int piece = this->pieceAtSquare(i);
+    pieces[i] = piece;
+  }
+
+  return pieces;
 }
 
 void Bitboard::generateCastleMoves(Color side) {
@@ -735,7 +773,7 @@ bool Bitboard::makeMove(Move move) {
     int i = (color == WHITE) ? 1 : 0;
 
     /* Skip same color piece bitboards */
-    for (; i < 6; i += 2) {
+    for (; i < 12; i += 2) {
       if (piecesBB[i].test(target_square) == true) {
         piecesBB[i].set(target_square, false);
         break;

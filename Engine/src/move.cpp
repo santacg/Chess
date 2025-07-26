@@ -105,8 +105,10 @@ string Move::formatToAlgebraic() {
   }
 
   algebraic_notation.append(piece);
+
   if (flag == CAPTURE)
     algebraic_notation.append("x");
+
   algebraic_notation.append(coordinateToSquare[target_square]);
 
   return algebraic_notation;
