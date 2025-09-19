@@ -204,9 +204,9 @@ int uci_parse_move(string uci_move_str, Bitboard *bb) {
   }
 
   if (bb->isCheckmate(bb->getTurn())) {
-    return 1;
+    return bb->getTurn();
   } else if (bb->isStaleMate(bb->getTurn())) {
-    return 2;
+    return 3;
   }
 
   return 0;
@@ -297,13 +297,13 @@ void uci_loop() {
     } else if (uci_command.find("move") != uci_command.npos) {
       int move_res = uci_parse_move(uci_command.substr(5), &bb);
       if (move_res == -1) {
-        cout << "Illegal move" << endl;
-      } else if (move_res == 1) {
+        cout << "illegal" << endl;
+      } else if (move_res == 1 || move_res == 2) {
         send_pos(&bb);
-        cout << "Checkmate!" << endl;
+        cout << "checkmate: " << move_res << endl;
       } else if (move_res == 2) {
         send_pos(&bb);
-        cout << "Stalemate!" << endl;
+        cout << "stalemate" << endl;
       } else {
         send_pos(&bb);
       }

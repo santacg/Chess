@@ -1,5 +1,6 @@
 chess==1.11.2
-PyQt6==6.9.1
-PyQt6-Qt6==6.9.1
-PyQt6_sip==13.10.2
+PySide6==6.9.2
+PySide6_Addons==6.9.2
+PySide6_Essentials==6.9.2
 python-chess==1.999
+shiboken6==6.9.2

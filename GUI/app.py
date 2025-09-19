@@ -1,8 +1,6 @@
 import sys
 
-from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout
-from PyQt6 import QtGui, QtCore
+from PySide6 import QtCore, QtGui, QtWidgets
 
 LIGHT_SQUARE = '#EBECD0'
 DARK_SQUARE = '#779556'
@@ -36,14 +34,15 @@ PIECE_IMAGES = {
 
 
 class EngineController(QtCore.QObject):
-    ready = QtCore.pyqtSignal()
-    pos = QtCore.pyqtSignal(str)
-    illegal = QtCore.pyqtSignal()
+    ready = QtCore.Signal()
+    pos = QtCore.Signal(str)
+    illegal = QtCore.Signal()
+    checkmate = QtCore.Signal()
+    stalemate = QtCore.Signal()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.proc = QtCore.QProcess(self)
-
         self.proc.readyReadStandardOutput.connect(self._read)
 
     def start(self, path="/home/santacg/Code/Chess/Engine/chess"):
@@ -89,26 +88,30 @@ class EngineController(QtCore.QObject):
             self.pos.emit(line)
         elif line == "illegal":
             self.illegal.emit()
+        elif line == "checkmate":
+            self.checkmate.emit()
+        elif line == "stalemate":
+            self.stalemate.emit()
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.setWindowTitle("Chess GUI (PySide6)")
 
         self.engine = EngineController()
         self.engine.start()
 
-        self.engine.ready
-
-        layout = QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         chessBoard = ChessBoardWidget(self.engine)
+        layout.addWidget(chessBoard, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
 
-        layout.addWidget(chessBoard)
-
-        widget = QWidget()
+        widget = QtWidgets.QWidget()
         widget.setLayout(layout)
-
         self.setCentralWidget(widget)
+
+        self.setStyleSheet("background-color: #161512")
 
 
     def closeEvent(self, e):
@@ -116,14 +119,16 @@ class MainWindow(QMainWindow):
         e.accept()
 
 
-class ChessBoardWidget(QWidget):
+class ChessBoardWidget(QtWidgets.QWidget):
     def __init__(self, engine):
         super().__init__()
 
         self.engine = engine
         self.board_state = []
+        self.checkmate = 0 
 
         self.engine.pos.connect(self.parse_pos)
+        self.engine.checkmate.connect(self.on_checkmate)
 
         self.loop = QtCore.QEventLoop()
         self.engine.ready.connect(self.on_ready)
@@ -149,6 +154,9 @@ class ChessBoardWidget(QWidget):
     def parse_pos(self, line: str):
         self.board_state = [piece for piece in line[4:-1].split("-")]
         self.update()
+
+    def on_checkmate(self):
+        print("hola")
 
     def paintEvent(self, e):
         painter = QtGui.QPainter(self)
@@ -200,10 +208,10 @@ class ChessBoardWidget(QWidget):
         else:
             return
 
-        # Maybe dont update when illegal moves
+        # Maybe dont update when illegal move
         self.update()
 
-app = QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 
 window = MainWindow()
 window.show()
