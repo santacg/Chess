@@ -214,7 +214,7 @@ class ChessBoardWidget(QtWidgets.QWidget):
         else:
             return
 
-        # Consider not redrawing the board for highlighting the source square
+        # To-Do: Consider not redrawing the board for highlighting the source square
 
 app = QtWidgets.QApplication(sys.argv)
 
